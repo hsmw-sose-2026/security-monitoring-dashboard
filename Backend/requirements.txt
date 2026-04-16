@@ -1,0 +1,2 @@
+# Python Abhaengigkeiten kommen spaeter hier rein.
+# Wahrscheinlich z.B. fastapi, uvicorn, sqlmodel, python-jose und passlib.
