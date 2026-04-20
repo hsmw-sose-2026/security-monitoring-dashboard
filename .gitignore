@@ -212,3 +212,6 @@ __marimo__/
 *.db-journal
 *.sqlite
 *.sqlite3
+
+# Persönliche Notizen (nicht für das Team)
+NOTES.md
