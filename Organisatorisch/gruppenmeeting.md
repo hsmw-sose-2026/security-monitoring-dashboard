@@ -16,7 +16,7 @@ Aktueller Stand (basierend auf der Abstimmung):
 - `Frontend/src/app/search/page.tsx` (Jannis)
 
 **Tim + Jonas - Backend API + Datenbank**
-- `Backend/app/main.py` (Jonas)
+- `Backend/app/main.py` (Tim + Jonas)
 - `Backend/app/models.py` (Tim + Jonas)
 - `Backend/app/database.py` (Tim)
 - `Backend/app/routes/auth.py` (Tim)
