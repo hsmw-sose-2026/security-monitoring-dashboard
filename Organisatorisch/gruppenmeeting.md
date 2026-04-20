@@ -2,7 +2,7 @@
 
 Aktueller Stand (basierend auf der Abstimmung):
 
-**Niklas - Frontend Dashboard**
+**Niklas + Kevin - Frontend Dashboard**
 - `Frontend/src/app/dashboard/page.tsx` (Übersicht)
 - `Frontend/src/app/dashboard/events/page.tsx` (Event-Log)
 - `Frontend/src/app/dashboard/alerts/page.tsx` (Alerts)
