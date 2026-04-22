@@ -3,7 +3,7 @@
 # Sinnvoll waere auch ein kleiner /health Endpoint damit man direkt sieht ob der Server laeuft.
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select
 
@@ -12,6 +12,7 @@ from app.models import User
 from app.auth_utils import hash_password
 from app.routes import auth as auth_routes
 from app.routes import dashboard as dashboard_routes
+from app.middleware.security import security_middleware as security_logic
 
 
 def seed_text_user():
@@ -46,6 +47,10 @@ app.add_middleware(
     allow_methods=["*"],        # Alle HTTP-Methoden erlauben (GET, POST, PUT, DELETE etc.) 
     allow_headers=["*"]         # Alle Header erlauben, damit die Frontend-Anwendung die notwendigen Informationen in den Anfragen senden kann (z.B. Content-Type, Authorization etc.)
 )
+
+@app.middleware("http")
+async def security_middleware(request: Request, call_next):
+    return await security_logic(request, call_next)
 
 @app.get("/health")     # einfacher Endpoint, um zu überprüfen, ob der Server läuft. Gibt einfach ein JSON mit "status": "ok" zurück
 def health_check():

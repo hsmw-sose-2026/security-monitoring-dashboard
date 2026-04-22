@@ -9,6 +9,8 @@ from sqlmodel import Session, select
 from app.database import get_session
 from app.models import User, SecurityEvent
 from app.auth_utils import verify_password
+from app.services.detection import correlate
+
 
 router = APIRouter(prefix="/auth", tags=["auth"])   # APIRouter ermöglicht es, die Routen in verschiedene Module zu organisieren. Hier erstellen wir einen Router für alle Authentifizierungs-bezogenen Endpunkte, der später in main.py eingebunden wird.
 
@@ -26,6 +28,8 @@ def log_failed_login(session: Session, source_ip: str, path: str, username: str)
     )
     session.add(event)
     session.commit()
+    correlate(session, event.source_ip)
+
 
 @router.post("/login")
 def login(data: LoginRequest, request: Request, session: Session = Depends(get_session)):     # POST-Endpoint für den Login. Er erwartet ein JSON mit "username" und "password", das automatisch in ein LoginRequest-Objekt umgewandelt wird. Außerdem erhält er eine Datenbank-Session, die von der get_session-Funktion bereitgestellt wird (durch Depends(get_session)). Request-Objekt um IP des Clients zu holen.
