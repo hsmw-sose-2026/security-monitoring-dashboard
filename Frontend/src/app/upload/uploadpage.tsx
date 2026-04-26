@@ -1,6 +1,6 @@
 import {IconHome, IconSearch, IconCloud, IconLogout} from '@tabler/icons-react';
 import Link from 'next/link';
-export default function Home() {
+export default function Upload() {
     return (
         <>
         {/* Header */}
@@ -29,7 +29,7 @@ export default function Home() {
 
         {/* Main Container */}
             <div className='flex flex-1'>
-                {/* Navigation Sidebar - Bleibt immer sichtbar und hat feste Breite */}
+                {/* Navigation  */}
                 <div className='w-45 h-screen bg-gray-100 p-4 flex flex-col gap-2'>
                     <Link href='/' className='flex items-center gap-2 bg-blue-500 text-white hover:bg-blue-600 rounded-2xl px-6 py-4 w-full'>
                         <span>Startseite</span>
@@ -42,12 +42,19 @@ export default function Home() {
                     </Link> 
                 </div>
 
-                {/* Main Content - Nimmt den verbleibenden Platz ein */}
+                {/* Upload Formular */}
                 <div className='flex-1 p-4'>
-                    <div className='flex flex-col items-center justify-center gap-4'>
-                        <IconHome className='size-8' />
-                        <h1 className='font-bold text-3xl'>Willkommen!</h1>
-                        <p className='text-lg'>Das ist die Startseite.</p>
+                    <div className='flex flex-col flex-1 items-center justify-center gap-4'>
+                        <div className='border-black border-2 rounded-lg p-20 flex flex-col items-center gap-4'>
+                            <h1 className='font-bold text-3xl'>Datei hochladen</h1>
+
+                            <input type='text' placeholder='Name' className='border border-gray-300 rounded px-4 py-2 w-full' />
+                            <input type='text' placeholder='Benutzername' className='border border-gray-300 rounded px-4 py-2 w-full' />
+                            <input type='email' placeholder='E-Mail' className='border border-gray-300 rounded px-4 py-2 w-full' />
+                            <textarea placeholder='Nachricht' className='border border-gray-300 rounded px-4 py-2 w-full' rows={4} />
+
+                            <button  className='bg-blue-500 text-white rounded px-24 py-2 w-full hover:bg-blue-600'>Senden</button>
+                        </div>
                     </div>
                 </div>
             </div>
