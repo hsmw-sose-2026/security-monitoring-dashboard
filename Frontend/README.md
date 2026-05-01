@@ -1,13 +1,20 @@
-# [Node.js](https://nodejs.org/) (NPM) + [Next.js](https://nextjs.org/docs) + [React](https://react.dev/learn) + [Tailwind CSS](https://tailwindcss.com) + [TypeScript](https://www.typescriptlang.org/docs)
+# [Node.js](https://nodejs.org/) (NPM) + [Bun](https://bun.sh/) + [Next.js](https://nextjs.org/docs) + [React](https://react.dev/learn) + [Tailwind CSS](https://tailwindcss.com) + [TypeScript](https://www.typescriptlang.org/docs)
 
-[Node.js](https://nodejs.org/en/download) herunterladen und installieren. Node.js dient dazu JavaScript (und TypeScript) auszuführen. NPM wird automtisch mit installiert und dient dazu die Packages und Commands vom Projekt zu verwalten.
+[Node.js](https://nodejs.org/en/download) & [Bun](https://bun.sh/) herunterladen und installieren. Node.js/Bun dient dazu JavaScript (und TypeScript) auszuführen.
+
+- Icons: [Tabler Icons](https://tabler.io/icons)
+- Empfohlene VSCode Extensions:
+    - biome von biomejs
+    - Tailwind CSS IntelliSense von Tailwind Labs
+    - JavaScript and TypeScript Nightly von Microsoft
+    - Pretty TypeScript Errors von yoavbls
 
 ## Development
 
-Um die benötigten Packages zu installieren `npm i` im `Frontend`-Ordner ausführen. Das erstellt den Ordner `node_modules` in dem alle benötigten Pakete für das Projekt liegen.
+Um die benötigten Packages zu installieren `bun i` im `Frontend`-Ordner ausführen. Das erstellt den Ordner `node_modules` in dem alle benötigten Pakete für das Projekt liegen.
 
 Der Next.js Dev Server hostet lokal die Website und aktualisiert sobald Änderungen vorgenommen werden.\
-Dev-Server starten: `npm run dev`\
+Dev-Server starten: `bun run dev`\
 Website läuft unter: [http://localhost:3000](http://localhost:3000)
 
 ## Projektstruktur
