@@ -33,13 +33,6 @@
     "event_type": "sql_injection",
     "severity": "high",
     "description": "Hochkomma gefolgt von SQL-Kommentar"
-  },
-   {
-     "name": "test_modularity",
-     "regex": "magicword",
-     "event_type": "sql_injection",
-     "severity": "low",
-     "description": "Test, ob Modularitaet funktioniert"
-   }
+  }
 
 ]
