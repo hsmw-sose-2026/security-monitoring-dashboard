@@ -1,0 +1,5 @@
+{
+  "event_type": "path_traversal",
+  "severity": "high",
+  "patterns": []
+}
