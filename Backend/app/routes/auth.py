@@ -7,9 +7,10 @@ from pydantic import BaseModel
 from sqlmodel import Session, select
 
 from app.database import get_session
-from app.models import User, SecurityEvent
+from app.models import User
 from app.auth_utils import verify_password
-from app.services.detection import correlate
+
+from app.services.security.event_logger import log_security_event
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])   # APIRouter ermöglicht es, die Routen in verschiedene Module zu organisieren. Hier erstellen wir einen Router für alle Authentifizierungs-bezogenen Endpunkte, der später in main.py eingebunden wird.
@@ -19,16 +20,7 @@ class LoginRequest (BaseModel):     # Pydantic-Modell zur Validierung der Login-
     password: str
 
 def log_failed_login(session: Session, source_ip: str, path: str, username: str):
-    event = SecurityEvent(
-        event_type = "failed_login",
-        source_ip = source_ip,
-        path = path,
-        detail = f"Fehlgeschlagener Login fuer Benutzer '{username}'",
-        severity = "medium",
-    )
-    session.add(event)
-    session.commit()
-    correlate(session, event.source_ip)
+    log_security_event(session=session, event_type="failed_login", source_ip=source_ip, path=path, detail=f"Fehlgeschlagener Login fuer Benutzer '{username}'", severity="medium")
 
 
 @router.post("/login")
