@@ -14,6 +14,7 @@ from app.api.router import register_routers
 from app.middleware.security import security_middleware as security_logic
 
 
+
 def seed_text_user():
     with Session(engine) as session:
         existing = session.exec(select(User)).first()   # select(User) erstellt eine SQL-Abfrage, um alle Benutzer in der Datenbank zu holen. Mit .first() wird nur der erste Benutzer zurückgegeben, oder None, wenn es keine Benutzer gibt. Das ist eine einfache Möglichkeit zu überprüfen, ob bereits Benutzer in der Datenbank existieren, bevor wir Test-User anlegen.

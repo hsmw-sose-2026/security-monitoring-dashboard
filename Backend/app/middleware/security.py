@@ -1,55 +1,50 @@
 # Security Middleware.
-# Die Datei schaut sich jeden Request an der reinkommt und checkt auf offensichtige Muster.
-# Also z.B. SQL Injection, XSS, Path Traversal oder gefaehrliche Uploads.
-# Wenn was auffaellig ist, wird daraus ein Event das spaeter im Dashboard auftauchen kann.
+# Holt Patterns ueber den rule_loader, baut den RequestContext, ruft den
+# pattern_detector auf und schreibt Findings als SecurityEvents in die DB.
 
-import re
 from fastapi import Request
 from sqlmodel import Session
-from urllib.parse import unquote
 
 from app.database import engine
 from app.services.security.event_logger import log_security_event
+from app.services.security.rule_loader import get_rules
+from app.services.security.request_context import build_context
+from app.services.security.detectors.pattern_detector import run_pattern_detection
 
-SQL_INJECTION_PATTERNS = [
-    re.compile(r"'\s*or\s*'?\d+'?\s*=\s*'?\d+", re.IGNORECASE),    # ' OR 1=1, ' OR '1'='1
-    re.compile(r"union\s+select", re.IGNORECASE),                  # UNION SELECT
-    re.compile(r"drop\s+table", re.IGNORECASE),                    # DROP TABLE
-    re.compile(r";\s*delete\s+from", re.IGNORECASE),               # ; DELETE FROM
-    re.compile(r"'\s*--", re.IGNORECASE),                          # ' --
-]
 
-def detect_sql_injection(text: str) -> str | None: 
-    # überprueft ob ein SQL-Injection-Pattern vorkommt und gibt das erste gefundene Muster als String String zurueck
-    if not text:
-        return None
-    for pattern in SQL_INJECTION_PATTERNS: 
-        match = pattern.search(text)
-        if match:
-            return match.group(0)
-    return None
-    
+def log_finding(finding: dict, source_ip: str, path: str):
+    """Schreibt einen einzelnen Finding als SecurityEvent in die DB."""
+    detail = f"{finding['description']}: {finding['matched_text']} in {finding['where']} erkannt"
+
+    with Session(engine) as session:
+        log_security_event(
+            session=session,
+            event_type=finding["event_type"],
+            source_ip=source_ip,
+            path=path,
+            detail=detail,
+            severity=finding["severity"],
+        )
 
 async def security_middleware(request: Request, call_next):
-    # wird von FastAPI bei jedem Request aufgerufen und checkt Request nach Angriffsmuster
-    source_ip = request.client.host if request.client else "unknown"
-    path = request.url.path
-    
-    full_url = unquote(str(request.url))        # unquote weil Browser URL kodiert (z.B. ' wird zu %27 )
-    sql_hit = detect_sql_injection(full_url)
+    """Wird von FastAPI bei jedem Request aufgerufen.
+    Baut einen RequestContext, prueft alle SQLi-Patterns dagegen und schreibt
+    Findings als SecurityEvents in die DB."""
 
-    if sql_hit:
-        print(f"[Middleware] SQL-Injection in URL erkannt: {sql_hit}")
-        with Session(engine) as session:
-            log_security_event(
-                session=session,
-                event_type="sql_injection",
-                source_ip=source_ip,
-                path=path,
-                detail=f"Muster '{sql_hit}' in URL erkannt",
-                severity="high",
-            )
+    # 1. Kontext aus dem Request bauen
+    context = await build_context(request)
 
+    # 2. SQLi-Regeln laden und durchsuchen
+    # TODO: Sobald registry.py von Jannis da ist, hier auf registry.run_all() umstellen,
+    # dann werden automatisch alle Detektoren (SQLi, XSS, Path Traversal, ...) ausgefuehrt.
+    sqli_rules = get_rules("sqli")
+    findings = run_pattern_detection(sqli_rules, context)
+
+    # 3. Findings als Events loggen
+    for finding in findings:
+        print(f"[Middleware] {finding['event_type']} erkannt ({finding['name']}): {finding['matched_text']} in {finding['where']}")
+        log_finding(finding, context.source_ip, context.path)
+
+    # 4. Request normal weiterleiten
     response = await call_next(request)
     return response
-
