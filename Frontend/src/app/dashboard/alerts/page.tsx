@@ -1,63 +1,28 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {toast} from 'sonner';
 import {getBackendHost} from '@/actions/getBackendHost';
 import {AlertRow} from '@/components/dashboard/alert-row';
+import {DateInput, TimeInput} from '@/components/dashboard/datetime-input';
 import {Input} from '@/components/ui/input';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {filterAlerts, getUniqueOf} from '@/lib/dashboard';
 import type {Alert} from '@/types/dashboard';
 
-const dummyEvents: Alert[] = [
-    {
-        id: 999,
-        timestamp: '2026-03-26T13:00:00.000Z',
-        alert_type: 'Brute Force',
-        source_ip: '158.21.144.92',
-        message: 'test',
-        severity: 'none',
-    },
-    {
-        id: 1000,
-        timestamp: '2026-03-28T12:00:00.000Z',
-        alert_type: 'SQL Injection',
-        source_ip: '158.21.144.92',
-        message: 'test',
-        severity: 'low',
-    },
-    {
-        id: 1001,
-        timestamp: '2026-04-01T12:00:00.000Z',
-        alert_type: 'SQL Injection',
-        source_ip: '45.203.8.176',
-        message: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Nam vel animi quia voluptatibus eligendi illo? Accusantium quod deleniti ipsa illo?',
-        severity: 'medium',
-    },
-    {
-        id: 1002,
-        timestamp: '2026-04-08T12:00:00.000Z',
-        alert_type: 'Brute Force',
-        source_ip: '192.0.74.201',
-        message: 'test',
-        severity: 'high',
-    },
-    {
-        id: 1003,
-        timestamp: '2026-04-16T12:00:00.000Z',
-        alert_type: 'SQL Injection',
-        source_ip: '207.15.233.19',
-        message: 'test',
-        severity: 'critical',
-    },
-];
-
 export default function Alerts() {
     const [alerts, setAlerts] = useState<Alert[]>([]);
+    const [startDate, setStartDate] = useState<Date | null>(null);
+    const [startTime, setStartTime] = useState<number | null>(null);
+    const [endDate, setEndDate] = useState<Date | null>(null);
+    const [endTime, setEndTime] = useState<number | null>(null);
     const [alertType, setAlertType] = useState<string>('Alle Typen');
     const [sourceIP, setSourceIp] = useState<string>('');
     const [message, setMessage] = useState<string>('');
     const [severity, setSeverity] = useState<string>('Alle Severities');
+
+    const startDateTime = useMemo(() => (startDate !== null && startTime !== null ? new Date(startDate.getTime() + startTime) : null), [startDate, startTime]);
+    const endDateTime = useMemo(() => (endDate !== null && endTime !== null ? new Date(endDate.getTime() + endTime) : null), [endDate, endTime]);
 
     useEffect(() => {
         const getFromBackend = async () => {
@@ -67,7 +32,7 @@ export default function Alerts() {
                 if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
 
                 const data = (await response.json()) as Alert[];
-                setAlerts([...dummyEvents, ...data]);
+                setAlerts([...data]);
             } catch (_error) {
                 toast.error('Alerts konnten nicht geladen werden.');
             }
@@ -79,6 +44,15 @@ export default function Alerts() {
         <main className='w-full h-screen bg-neutral-900 flex flex-col items-center pt-16 gap-4'>
             <h1 className='text-3xl font-bold mb-16'>Alerts</h1>
             <div className='flex gap-4 w-7xl'>
+                <div className='flex items-center'>
+                    <DateInput date={startDate} setDate={setStartDate} placeholder='Startdatum' />
+                    <div className='bg-muted/80 w-3 h-3 border-y z-10 -mx-px'></div>
+                    <TimeInput time={startTime} setTime={setStartTime} />
+                    <span className='mx-2'>bis</span>
+                    <DateInput date={endDate} setDate={setEndDate} placeholder='Enddatum' />
+                    <div className='bg-muted/80 w-3 h-3 border-y z-10 -mx-px'></div>
+                    <TimeInput time={endTime} setTime={setEndTime} />
+                </div>
                 <Select value={alertType} onValueChange={(value) => value && setAlertType(value)}>
                     <SelectTrigger>
                         <SelectValue placeholder='Event Type' />
@@ -120,7 +94,7 @@ export default function Alerts() {
                         </tr>
                     </thead>
                     <tbody>
-                        {filterAlerts(alerts, alertType, sourceIP.trim(), message.trim(), severity).map((event) => (
+                        {filterAlerts(alerts, startDateTime, endDateTime, alertType, sourceIP.trim(), message.trim(), severity).map((event) => (
                             <AlertRow data={event} key={event.id} />
                         ))}
                     </tbody>

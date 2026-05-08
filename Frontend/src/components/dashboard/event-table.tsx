@@ -1,22 +1,39 @@
 'use client';
 
-import {type ComponentProps, useState} from 'react';
+import {type ComponentProps, useMemo, useState} from 'react';
 import {EventRow} from '@/components/dashboard/event-row';
 import {Input} from '@/components/ui/input';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {filterEvents, getUniqueOf} from '@/lib/dashboard';
 import {cn} from '@/lib/utils';
 import type {SecurityEvent} from '@/types/dashboard';
+import {DateInput, TimeInput} from './datetime-input';
 
 export function EventTable({events, className, ...props}: {events: SecurityEvent[]} & ComponentProps<'div'>) {
+    const [startDate, setStartDate] = useState<Date | null>(null);
+    const [startTime, setStartTime] = useState<number | null>(null);
+    const [endDate, setEndDate] = useState<Date | null>(null);
+    const [endTime, setEndTime] = useState<number | null>(null);
     const [eventType, setEventType] = useState<string>('Alle Typen');
     const [sourceIP, setSourceIp] = useState<string>('');
     const [path, setPath] = useState<string>('Alle Paths');
     const [severity, setSeverity] = useState<string>('Alle Severities');
 
+    const startDateTime = useMemo(() => (startDate !== null && startTime !== null ? new Date(startDate.getTime() + startTime) : null), [startDate, startTime]);
+    const endDateTime = useMemo(() => (endDate !== null && endTime !== null ? new Date(endDate.getTime() + endTime) : null), [endDate, endTime]);
+
     return (
         <div className={cn('flex flex-col items-center gap-4', className)} {...props}>
             <div className='flex gap-4'>
+                <div className='flex items-center'>
+                    <DateInput date={startDate} setDate={setStartDate} placeholder='Startdatum' />
+                    <div className='bg-muted/80 w-3 h-3 border-y z-10 -mx-px'></div>
+                    <TimeInput time={startTime} setTime={setStartTime} />
+                    <span className='mx-2'>bis</span>
+                    <DateInput date={endDate} setDate={setEndDate} placeholder='Enddatum' />
+                    <div className='bg-muted/80 w-3 h-3 border-y z-10 -mx-px'></div>
+                    <TimeInput time={endTime} setTime={setEndTime} />
+                </div>
                 <Select value={eventType} onValueChange={(value) => value && setEventType(value)}>
                     <SelectTrigger>
                         <SelectValue placeholder='Event Type' />
@@ -71,7 +88,7 @@ export function EventTable({events, className, ...props}: {events: SecurityEvent
                         </tr>
                     </thead>
                     <tbody>
-                        {filterEvents(events, eventType, sourceIP.trim(), path, severity).map((event) => (
+                        {filterEvents(events, startDateTime, endDateTime, eventType, sourceIP.trim(), path, severity).map((event) => (
                             <EventRow data={event} key={event.id} />
                         ))}
                     </tbody>
