@@ -1,12 +1,13 @@
 'use client';
 
 import type {ComponentProps} from 'react';
-import type {SecurityEvent} from '@/types/dashboard';
+import type {Alert} from '@/types/dashboard';
+import {Tooltip, TooltipContent, TooltipTrigger} from '../ui/tooltip';
 
-export function OverviewRow({data, className, ...props}: {data: SecurityEvent} & ComponentProps<'tr'>) {
+export function AlertRow({data, className, ...props}: {data: Alert} & ComponentProps<'tr'>) {
     return (
-        <tr className={`hover:bg-neutral-800 h-max [&>td]:p-4 [&>td]:py-2 border-b last:border-none border-neutral-700 ${className}`} {...props}>
-            <td className='font-mono text-neutral-400'>
+        <tr className={`hover:bg-neutral-800 h-11 [&>td]:p-4 [&>td]:py-2 border-b last:border-none border-neutral-700 ${className}`} {...props}>
+            <td className='font-mono text-neutral-400 whitespace-nowrap'>
                 {new Date(data.timestamp)
                     .toLocaleString('de-DE', {
                         day: '2-digit',
@@ -19,9 +20,14 @@ export function OverviewRow({data, className, ...props}: {data: SecurityEvent} &
                     })
                     .replace(/,/g, '')}
             </td>
-            <td>{data.event_type}</td>
-            <td className='font-mono'>{data.source_ip}</td>
-            <td>{data.path}</td>
+            <td className='whitespace-nowrap'>{data.alert_type}</td>
+            <td className='font-mono whitespace-nowrap'>{data.source_ip}</td>
+            <td className='max-w-0 w-full'>
+                <Tooltip>
+                    <TooltipTrigger className='text-start w-full truncate select-text'>{data.message}</TooltipTrigger>
+                    <TooltipContent className='select-text'>{data.message}</TooltipContent>
+                </Tooltip>
+            </td>
             <td>
                 <SeverityBadge severity={data.severity} />
             </td>
