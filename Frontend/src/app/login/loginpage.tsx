@@ -9,7 +9,7 @@ export default function Login() {
                 <input type='text' placeholder='Benutzername' className='border border-gray-300 rounded px-4 py-2 w-full' />
                 <input type='password' placeholder='Passwort' className='border border-gray-300 rounded px-4 py-2 w-full' />
                 
-                <a href='/'><button className='bg-blue-500 text-white rounded px-24 py-2 w-full hover:bg-blue-600'>Anmelden</button></a>
+                <a href='/'><button type='button' className='bg-blue-500 text-white rounded px-24 py-2 w-full hover:bg-blue-600'>Anmelden</button></a>
            </div>
         </div>
     );

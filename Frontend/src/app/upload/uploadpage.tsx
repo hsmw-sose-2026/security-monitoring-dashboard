@@ -61,7 +61,7 @@ export default function Upload() {
     setStatus({ message: '', type: '' }); // Leere vorherige Statusmeldungen
 
     const formData = new FormData(); // Erstelle ein FormData-Objekt für den Datei-Upload
-    pendingFiles.forEach(({ file }) => formData.append('files', file)); // Füge jede Datei zum FormData hinzu
+    for (const { file } of pendingFiles) formData.append('files', file); // Füge jede Datei zum FormData hinzu
 
     try {
       // Sende POST-Anfrage an den Server-Endpunkt '/upload' mit den Dateien
@@ -116,7 +116,7 @@ export default function Upload() {
 
       {/* Haupt-Container: Enthält Navigation und Upload-Bereich */}
       <div className='flex flex-1'>
-        {/* Navigation: Links zu verschiedenen Seiten */}
+        {/* Navigation:*/}
         <div className='w-45 h-screen bg-gray-100 p-4 flex flex-col gap-2'>
           <Link href='/' className='flex items-center gap-2 bg-blue-500 text-white hover:bg-blue-600 rounded-2xl px-6 py-4 w-full'>
             <span>Startseite</span>
@@ -129,14 +129,15 @@ export default function Upload() {
           </Link>
         </div>
 
-        {/* Upload-Bereich: Hauptbereich für Datei-Upload */}
+        {/* Upload-Bereich*/}
         <div className='flex-1 p-8'>
           <div className='flex flex-col items-center justify-center gap-4 max-w-xl mx-auto mt-8'>
             <div className='border-black border-2 rounded-lg p-10 flex flex-col items-center gap-4 w-full'>
               <h1 className='font-bold text-3xl'>Datei hochladen</h1>
 
-              {/* Drop-Zone: Bereich zum Auswählen von Dateien durch Klick oder Drag-and-Drop */}
-              <div
+              {/* Drop-Zone*/}
+              <button
+                type='button'
                 onClick={() => fileInputRef.current?.click()}
                 className='w-full border-2 border-dashed rounded-lg p-10 flex flex-col items-center gap-3 cursor-pointer transition-colors border-gray-300 hover:border-blue-400 hover:bg-gray-50'
               >
@@ -150,13 +151,13 @@ export default function Upload() {
                   multiple
                   className='hidden'
                   onChange={e => {
-                    if (e.target.files) addFiles([...e.target.files]); // Füge die ausgewählten Dateien zur Liste hinzu
-                    e.target.value = ''; // Leere den Input-Wert, um erneute Auswahl derselben Datei zu ermöglichen
+                    if (e.target.files) addFiles([...e.target.files]); // Füge ausgewählten Dateien zur Liste hinzu
+                    e.target.value = ''; // Leeret Inputwert -> ernuetes Auswählen derselben datei möglich
                   }}
                 />
-              </div>
+              </button>
 
-              {/* Dateiliste: Zeigt die ausgewählten Dateien an mit Option zum Entfernen */}
+              {/* Dateiliste mit Entfernoption*/}
               {pendingFiles.length > 0 && ( // Zeige die Liste nur an, wenn Dateien vorhanden sind
                 <div className='w-full flex flex-col gap-2'>
                   {pendingFiles.map(({ file, id }) => (
@@ -166,7 +167,8 @@ export default function Upload() {
                         <p className='text-xs text-gray-400 font-mono'>{formatSize(file.size)}</p> {/* Formatierte Dateigröße */}
                       </div>
                       <button
-                        onClick={() => removeFile(id)} // Entferne die Datei bei Klick
+                        type='button'
+                        onClick={() => removeFile(id)}
                         className='text-gray-400 hover:text-red-500 transition-colors'
                         title='Entfernen'
                       >
@@ -177,21 +179,22 @@ export default function Upload() {
                 </div>
               )}
 
-              {/* Upload-Button: Startet den Upload-Prozess */}
+              {/* Upload-Button*/}
               <button
+                type='button'
                 onClick={handleUpload}
                 disabled={pendingFiles.length === 0 || uploading} // Deaktiviert, wenn keine Dateien oder bereits am Hochladen
                 className='bg-blue-500 text-white rounded px-24 py-2 w-full hover:bg-blue-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed'
               >
-                {uploading ? 'Lädt hoch…' : 'Hochladen'} {/* Dynamischer Text basierend auf Upload-Zustand */}
+                {uploading ? 'Lädt hoch…' : 'Hochladen'}
               </button>
 
-              {/* Status-Anzeige: Zeigt Erfolgs- oder Fehlermeldungen an */}
-              {status.message && ( // Zeige nur an, wenn eine Nachricht vorhanden ist
+              {/* Status-Anzeige (Erfolg/Fehler)*/}
+              {status.message && (
                 <div
                   className={`w-full text-sm px-4 py-2 rounded font-mono
-                    ${status.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : ''} // Grüne Farben für Erfolg
-                    ${status.type === 'error'   ? 'bg-red-50   text-red-600   border border-red-200'   : ''}`} // Rote Farben für Fehler
+                    ${status.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : ''}
+                    ${status.type === 'error'   ? 'bg-red-50   text-red-600   border border-red-200'   : ''}`}
                 >
                   {status.message} {/* Anzeige der Statusnachricht */}
                 </div>

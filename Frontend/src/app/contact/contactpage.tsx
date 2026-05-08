@@ -41,7 +41,7 @@ export default function Contact() {
                 </Link>
                 <Link href='/contact' className='flex items-center gap-2 bg-blue-500 text-white hover:bg-blue-600 rounded-2xl px-6 py-4 w-full'>
                     <span>Kontakt</span>
-                </Link> 
+                </Link>
             </div>
 
             {/* Kontakt Formular ----------------------------------------------- */}
@@ -55,7 +55,7 @@ export default function Contact() {
                         <input type='email' placeholder='E-Mail' className='border border-gray-300 rounded px-4 py-2 w-full' />
                         <textarea placeholder='Nachricht' className='border border-gray-300 rounded px-4 py-2 w-full' rows={4} />
 
-                        <button  className='bg-blue-500 text-white rounded px-24 py-2 w-full hover:bg-blue-600'>Senden</button>
+                        <button type='button' className='bg-blue-500 text-white rounded px-24 py-2 w-full hover:bg-blue-600'>Senden</button>
                     </div>
                 </div>
             </div>
