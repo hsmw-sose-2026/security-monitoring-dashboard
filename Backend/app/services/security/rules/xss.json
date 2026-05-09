@@ -1,0 +1,16 @@
+{
+  "event_type": "xss",
+  "severity": "medium",
+  "patterns": [
+    "<script",
+    "javascript:",
+    "onerror=",
+    "onload=",
+    "alert\\(",
+    "eval\\(",
+    "document\\.cookie",
+    "fromCharCode",
+    "%3Cscript",
+    "&#x3C;script"
+  ]
+}
