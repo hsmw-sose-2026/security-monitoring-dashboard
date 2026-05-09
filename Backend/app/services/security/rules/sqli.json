@@ -1,5 +1,35 @@
 {
   "event_type": "sql_injection",
   "severity": "high",
+<<<<<<< HEAD
   "patterns": []
+=======
+  "patterns": [
+    {
+      "name": "sql_or_equals",
+      "regex": "'\\s*or\\s*'?\\d+'?\\s*=\\s*'?\\d+",
+      "description": "' OR 1=1 und Varianten"
+    },
+    {
+      "name": "sql_union_select",
+      "regex": "union\\s+select",
+      "description": "UNION SELECT"
+    },
+    {
+      "name": "sql_drop_table",
+      "regex": "drop\\s+table",
+      "description": "DROP TABLE"
+    },
+    {
+      "name": "sql_delete_from",
+      "regex": ";\\s*delete\\s+from",
+      "description": "; DELETE FROM"
+    },
+    {
+      "name": "sql_quote_comment",
+      "regex": "'\\s*--",
+      "description": "Hochkomma gefolgt von SQL-Kommentar"
+    }
+  ]
+>>>>>>> origin/integration-test
 }
