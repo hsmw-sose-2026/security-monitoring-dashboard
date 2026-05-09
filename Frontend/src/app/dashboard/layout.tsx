@@ -1,5 +1,11 @@
+import {ClassOverride} from './class-override';
 import './globals.css';
 
 export default function DashboardLayout({children}: {children: React.ReactNode}) {
-    return children;
+    return (
+        <div className='dark text-foreground bg-background'>
+            <ClassOverride className='dark' />
+            {children}
+        </div>
+    );
 }
