@@ -205,3 +205,13 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Project-specific
+# Local database files created by the application, which may contain sensitive information and are not needed in version control.
+*.db                
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Persönliche Notizen (nicht für das Team)
+NOTES.md
