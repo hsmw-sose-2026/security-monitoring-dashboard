@@ -4,8 +4,6 @@
 # Ziel: Detektoren sollen nur melden, was gefunden wurde. Diese Datei speichert daraus
 # SecurityEvent-Eintraege in der Datenbank und startet danach die Alert-Korrelation.
 # Fertig, wenn Middleware, Auth und Upload nicht mehr jeweils eigene Event-Speicherlogik brauchen.
-<<<<<<< HEAD
-=======
 
 from sqlmodel import Session
 
@@ -33,4 +31,3 @@ def log_security_event(
     return {"event": event, "alerts": alerts}
 
 # (Tim) auth und middleware nutzen den logger jetzt schon, wir müssen aber noch upload und weitere detektoren umstellen auf diesen logger
->>>>>>> origin/integration-test

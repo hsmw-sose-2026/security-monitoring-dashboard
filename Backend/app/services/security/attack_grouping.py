@@ -1,11 +1,5 @@
 """Group security events into attacks for the dashboard."""
 
-<<<<<<< HEAD
-# TODO(Jonas): Events fuer das Dashboard zu Angriffen gruppieren.
-# Ziel: Die Funktion group_events_into_attacks aus detection.py hierher verschieben und
-# so aufraeumen, dass Dashboard-Routen nur noch diesen Service aufrufen.
-# Fertig, wenn /dashboard/attacks weiterhin dieselben Daten liefert wie vorher.
-=======
 
 from datetime import timedelta
 from sqlmodel import Session, select
@@ -96,4 +90,3 @@ def classify_attack(events: list[SecurityEvent]) -> str:
     if failed_logins > 0:
         return "suspicious_login_activity"
     return "reconnaissance"
->>>>>>> origin/integration-test

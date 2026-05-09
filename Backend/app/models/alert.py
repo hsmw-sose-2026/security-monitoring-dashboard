@@ -3,8 +3,6 @@
 # TODO(Jonas): Alert-Model aus Backend/app/models.py hierher verschieben.
 # Ziel: Alerts getrennt von rohen SecurityEvents modellieren.
 # Fertig, wenn Dashboard- und Korrelationslogik dieses Modul verwenden.
-<<<<<<< HEAD
-=======
 
 from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field
@@ -16,4 +14,3 @@ class Alert(SQLModel, table=True):
     source_ip: str
     message: str
     severity: str = "low"
->>>>>>> origin/integration-test

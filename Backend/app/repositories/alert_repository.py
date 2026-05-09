@@ -1,11 +1,5 @@
 """Database access for alerts."""
 
-<<<<<<< HEAD
-# TODO(Jonas): Datenbankzugriff fuer Alerts kapseln.
-# Ziel: Funktionen zum Erstellen neuer Alerts, Laden der letzten Alerts und Zaehlen
-# kritischer Alerts bereitstellen.
-# Fertig, wenn Correlation und Dashboard nicht mehr direkt select(Alert) ausfuehren.
-=======
 from sqlmodel import Session, select
 
 from datetime import datetime, timezone
@@ -54,4 +48,3 @@ def count_alerts_today(session: Session) -> int:
     #sql statement bauen, jeden Alert selecten welches groeßeren Timestamp
     #als 0 Uhr hat
     return len(session.exec(statement).all()) #sql statement ausführen und returnen
->>>>>>> origin/integration-test

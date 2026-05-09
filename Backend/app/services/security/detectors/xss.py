@@ -14,13 +14,13 @@ print("[XSS] Detector geladen")
 # Lade XSS-Patterns aus xss.json
 def _load_xss_patterns():
     """Lade Patterns aus xss.json"""
-    # Regeln werden aus dem rules-Verzeichnis geladen, damit Erkennungsmuster getrennt bleiben.
+    # Regeln aus rules-Verzeichnis laden, Erkennungsmuster bleiben getrennt
     config_path = Path(__file__).parent.parent / "rules" / "xss.json"
     try:
         with open(config_path, 'r') as f:
             config = json.load(f)
             patterns = config.get("patterns", [])
-            # Kompiliere die Regex-Pattern sofort für schnellere Ausführung später.
+            # kompiliere search pattern sofort für schnellere Ausführung später.
             return [re.compile(p, re.IGNORECASE) for p in patterns]
     except Exception as e:
         print(f"[XSS] Fehler beim Laden von xss.json: {e}")
@@ -34,7 +34,7 @@ def detect_xss(context) -> str | None:
     # gibt erkanntes Muster oder none zurück
     query = str(getattr(context, 'query', ''))
     path = str(getattr(context, 'path', ''))
-    # Query-Parameter werden zuerst geprüft, weil sie oft payload-gefährdet sind.
+    # Query-Parameter werden zuerst geprüft (oft payload-gefährdet)
     
     for pattern in XSS_PATTERNS:
         match = pattern.search(query)

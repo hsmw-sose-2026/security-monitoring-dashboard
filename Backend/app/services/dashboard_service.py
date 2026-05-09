@@ -3,12 +3,6 @@
 Routes should call this service instead of building all dashboard SQL directly.
 """
 
-<<<<<<< HEAD
-# TODO(Jonas): Dashboard-Aggregationen fuer die Uebersichtsseite bauen.
-# Ziel: Aus SecurityEvents und Alerts die Werte aus dem Anforderungskatalog berechnen:
-# Events heute, kritische Alerts, Events pro Stunde und Verteilung nach Angriffstyp.
-# Fertig, wenn /dashboard/stats alle Daten liefert, die Karten und Charts im Frontend brauchen.
-=======
 
 from sqlmodel import Session
 
@@ -37,4 +31,3 @@ def build_dashboard_stats(session: Session) -> StatsResponse:
         alerts_today=alerts_today,
         total_alerts=total_alerts,
     )
->>>>>>> origin/integration-test

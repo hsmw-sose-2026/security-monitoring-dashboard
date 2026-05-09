@@ -4,8 +4,6 @@
 # Ziel: sqli.json, xss.json, path_traversal.json und upload_extensions.json sollen
 # zentral eingelesen werden, damit Detektoren keine Regex-Listen mehr hart im Code haben.
 # Fertig, wenn fehlerhafte JSON-Dateien eine verstaendliche Fehlermeldung ausloesen.
-<<<<<<< HEAD
-=======
 
 
 import json
@@ -55,4 +53,3 @@ def get_rules(name: str) -> dict:
             f"Verfuegbar: {', '.join(ALL_RULES.keys())}"
         )
     return ALL_RULES[name]
->>>>>>> origin/integration-test

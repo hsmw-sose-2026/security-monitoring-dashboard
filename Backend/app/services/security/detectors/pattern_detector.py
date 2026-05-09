@@ -3,8 +3,6 @@
 # TODO(Tim): Generischen Regex-Detektor fuer JSON-Regeln bauen.
 # Ziel: Eine geladene Regeldatei nimmt mehrere Request-Felder und prueft alle Patterns.
 # Fertig, wenn SQLi, XSS und Path Traversal denselben Pattern-Detector wiederverwenden koennen.
-<<<<<<< HEAD
-=======
 
 
 import re
@@ -56,4 +54,3 @@ def run_pattern_detection(rules: dict, context: RequestContext) -> list[dict]:
                 break  # Pattern hat in einem Feld gematcht, naechstes Pattern
     
     return findings
->>>>>>> origin/integration-test

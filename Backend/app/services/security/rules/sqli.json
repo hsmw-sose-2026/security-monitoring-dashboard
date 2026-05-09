@@ -1,9 +1,6 @@
 {
   "event_type": "sql_injection",
   "severity": "high",
-<<<<<<< HEAD
-  "patterns": []
-=======
   "patterns": [
     {
       "name": "sql_or_equals",
@@ -31,5 +28,5 @@
       "description": "Hochkomma gefolgt von SQL-Kommentar"
     }
   ]
->>>>>>> origin/integration-test
+
 }
