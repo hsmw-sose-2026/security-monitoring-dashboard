@@ -1,51 +1,79 @@
+'use client';
+
 import {IconHome, IconSearch, IconCloud, IconLogout} from '@tabler/icons-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import clsx from 'clsx';
+
 export default function Upload() {
+    const pathname = usePathname();
     return (
         <>
-        {/* Header */}
-        <div className='flex h-20 shrink-0 items-end border border-gray-300 p-4 md:h-20 gap-5'>
-            <div className='flex items-center gap-2'>
-                <IconCloud className='size-8 text-blue-500'/>
-                <header className='text-2xl text-blue-500 font-bold'>Firmenwebsite</header>
-            </div>
-            
-            {/* Search Bar */}
-            <div className='flex-1 flex justify-center'>
-                <div className='flex items-center gap-2 border border-gray-300 rounded-4xl px-4 py-2 w-125'>
-                    <IconSearch className='size-8 text-blue-500' />
-                    <input type='text' placeholder='Suche...' className='outline-none w-full' />
-                </div>
-            </div>
-            
-            {/* Logout Button */}
-            <div className='flex items-center'>
-                <Link href='/login' className='flex items-center gap-2 bg-blue-500 px-6 py-2 rounded-4xl hover:bg-blue-600 transition-colors self-center min-w-max'>
-                    <IconLogout className='size-6 text-white' />
-                    <span className='text-white'>Logout</span>
-                </Link>
-            </div>
-        </div>
+        {/* Header------------------------------------------------------------------------ */}
 
-        {/* Main Container */}
-            <div className='flex flex-1'>
-                {/* Navigation  */}
-                <div className='w-45 h-screen bg-gray-100 p-4 flex flex-col gap-2'>
-                    <Link href='/' className='flex items-center gap-2 bg-blue-500 text-white hover:bg-blue-600 rounded-2xl px-6 py-4 w-full'>
+            <header className='fixed top-0 left-0 right-0 z-50 h-20 border-b border-gray-300 bg-white shadow-sm'>
+                <div className='flex items-center justify-between h-full px-4 md:px-6'>
+                    {/* Logo und Firma */}
+                    <div className='flex items-center gap-3'>
+                        <IconCloud className='size-8 text-blue-500'/>
+                        <h1 className='text-2xl text-blue-500 font-bold'>Firmenwebsite</h1>
+                    </div>
+                    
+                    {/* Suchleiste  */}
+                    <div className='flex-1 max-w-2xl mx-8'>
+                        <div className='flex items-center gap-2 border border-gray-300 rounded-full px-4 py-2 bg-white shadow-sm'>
+                            <IconSearch className='size-5 text-blue-500' />
+                            <input type='text' placeholder='Suche ...' className='outline-none w-full text-sm'/>
+                        </div>
+                    </div>
+                    
+                    {/* Logout Button */}
+                    <div className='flex items-center'>
+                        <Link 
+                            href='/login' 
+                            className='flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition-colors min-w-max'>
+                            <IconLogout className='size-4' />
+                            <span className='text-sm font-medium'>Logout</span>
+                        </Link>
+                    </div>
+                </div>
+            </header>
+
+        {/* Main Container-------------------------------------------------------------- */}
+
+            <div className='flex pt-20'>
+
+                {/* Navigation Sidebar --------------------------------------------------*/}
+
+                <div className='fixed left-0 top-20 h-screen w-45 bg-white p-4 flex flex-col gap-2 z-40'>
+                    <Link href='/' className={clsx('flex items-center gap-2 rounded-2xl px-6 py-4 w-full', { 
+                        'bg-blue-400 text-white': pathname === '/',
+                        'bg-blue-500 text-white hover:bg-blue-600': pathname !== '/'
+                     })}>
                         <span>Startseite</span>
                     </Link>
-                    <Link href='/upload' className='flex items-center gap-2 bg-blue-500 text-white hover:bg-blue-600 rounded-2xl px-6 py-4 w-full'>
-                    <span>Datei Upload</span>
+                    <Link href='/upload' className={clsx('flex items-center gap-2 rounded-2xl px-6 py-4 w-full', { 
+                        'bg-blue-400 text-white': pathname === '/upload',
+                        'bg-blue-500 text-white hover:bg-blue-600': pathname !== '/upload' })}>
+                        <span>Datei Upload</span>
                     </Link>
-                    <Link href='/contact' className='flex items-center gap-2 bg-blue-500 text-white hover:bg-blue-600 rounded-2xl px-6 py-4 w-full'>
+                    <Link href='/contact' className={clsx('flex items-center gap-2 rounded-2xl px-6 py-4 w-full', { 
+                        'bg-blue-400 text-white': pathname === '/contact',
+                        'bg-blue-500 text-white hover:bg-blue-600': pathname !== '/contact' })}>
                         <span>Kontakt</span>
-                    </Link> 
+                    </Link>  
+
+                    {/* Impressum */}
+                    <Link href='/impressum' className='fixed bottom-2 gap-2 text-blue-500 hover:text-blue-600 p-4'>
+                        <span>Impressum</span>
+                    </Link>
                 </div>
 
-                {/* Upload Formular */}
-                <div className='flex-1 p-4'>
+                {/* Upload Formular ------------------------------------------------ */}
+                
+                <div className='flex-1 ml-45 p-4 bg-gray-100 min-h-screen'>
                     <div className='flex flex-col flex-1 items-center justify-center gap-4'>
-                        <div className='border-black border-2 rounded-lg p-20 flex flex-col items-center gap-4'>
+                        <div className='bg-white rounded-lg mt-10 p-20 flex flex-col items-center gap-4'>
                             <h1 className='font-bold text-3xl'>Datei hochladen</h1>
 
                             <input type='text' placeholder='Name' className='border border-gray-300 rounded px-4 py-2 w-full' />

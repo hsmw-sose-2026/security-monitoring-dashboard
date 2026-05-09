@@ -1,12 +1,8 @@
-'use client';
-
 import { IconSearch, IconCloud, IconLogout } from '@tabler/icons-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import clsx from 'clsx';
 
-export default function Contact() {
-    const pathname = usePathname();
+
+export default function Impressum() {
     return (
         <>
         {/* Header */}
@@ -42,20 +38,13 @@ export default function Contact() {
             <div className='flex pt-20'>
                 {/* Navigation Sidebar */}
                 <div className='fixed left-0 top-20 h-screen w-45 bg-white p-4 flex flex-col gap-2 z-40'>
-                    <Link href='/' className={clsx('flex items-center gap-2 rounded-2xl px-6 py-4 w-full', { 
-                        'bg-blue-400 text-white': pathname === '/',
-                        'bg-blue-500 text-white hover:bg-blue-600': pathname !== '/'
-                     })}>
+                    <Link href='/' className='flex items-center gap-2 bg-blue-500 text-white hover:bg-blue-600 rounded-2xl px-6 py-4 w-full'>
                         <span>Startseite</span>
                     </Link>
-                    <Link href='/upload' className={clsx('flex items-center gap-2 rounded-2xl px-6 py-4 w-full', { 
-                        'bg-blue-400 text-white': pathname === '/upload',
-                        'bg-blue-500 text-white hover:bg-blue-600': pathname !== '/upload' })}>
-                        <span>Datei Upload</span>
+                    <Link href='/upload' className='flex items-center gap-2 bg-blue-500 text-white hover:bg-blue-600 rounded-2xl px-6 py-4 w-full'>
+                    <span>Datei Upload</span>
                     </Link>
-                    <Link href='/contact' className={clsx('flex items-center gap-2 rounded-2xl px-6 py-4 w-full', { 
-                        'bg-blue-400 text-white': pathname === '/contact',
-                        'bg-blue-500 text-white hover:bg-blue-600': pathname !== '/contact' })}>
+                    <Link href='/contact' className='flex items-center gap-2 bg-blue-500 text-white hover:bg-blue-600 rounded-2xl px-6 py-4 w-full'>
                         <span>Kontakt</span>
                     </Link> 
 
@@ -65,29 +54,24 @@ export default function Contact() {
                     </Link>
                 </div>
 
-            {/* Kontakt Formular ----------------------------------------------- */}
-            <div className='flex-1 ml-45 p-4 bg-gray-100 min-h-screen'>    
-                <div className='flex flex-col flex-1 items-center justify-center gap-4'>
-                    <div className='bg-white rounded-lg mt-10 p-20 flex flex-col items-center gap-4'>
-                        <h1 className='font-bold text-3xl'>Kontaktieren Sie uns...</h1>
+            {/* Impressum Inhalt ----------------------------------------------- */}
+            
+            <div className='flex-1 ml-45 p-4 bg-gray-100 min-h-screen'>
+                <article className='flex flex-col bg-white rounded-2xl px-10 py-10 h-auto'>
+                    <h2 className='font-bold text-2xl mb-6'>Impressum</h2>
+                    <p className='text-lg mb-4'>Hier finden Sie Informationen über die Verantwortlichen und die rechtlichen Aspekte der Website.</p>
 
-                        <input type='text' placeholder='Name' className='border border-gray-300 rounded px-4 py-2 w-full' />
-                        <input type='text' placeholder='Benutzername' className='border border-gray-300 rounded px-4 py-2 w-full' />
-                        <input type='email' placeholder='E-Mail' className='border border-gray-300 rounded px-4 py-2 w-full' />
-                        <textarea placeholder='Nachricht' className='border border-gray-300 rounded px-4 py-2 w-full' rows={4} />
+                    <p className='text-lg mb-3'>Anbieter:<br />Max Mustermann<br />Musterstraße 1<br />80999 München</p>
+                    <p className='text-lg mb-3'>Kontakt:<br />Telefon: 089/1234567-8<br />Telefax: 089/1234567-9<br />E-Mail: mail@mustermann.de<br />Website: www.mustermann.de</p>
+                    <p className='text-lg mb-3'> </p>
 
-                        <button  className='bg-blue-500 text-white rounded px-24 py-2 w-full hover:bg-blue-600'>Senden</button>
-                    </div>
-                </div>
+                    <p className='text-lg'>Bei redaktionellen Inhalten:</p>
+                    <p className='text-lg'>Verantwortlich nach § 55 Abs.2 RStV<br />Moritz Schreiberling<br />Musterstraße 2<br />80999 München</p>
+                </article>
             </div>
-
         </div>
         </>
     );
 }
-{/*-- Optional: Add a function to handle the send button click, e.g., to show an alert or send data to a server. 
-export function sendealert() {
-    alert("Nachricht gesendet!");
-}
---*/}
+
 
