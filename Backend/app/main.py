@@ -42,7 +42,10 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,     # CORS (Cross-Origin Resource Sharing) Middleware, die es ermöglicht, dass die Frontend-Anwendung (die wahrscheinlich auf einem anderen Port läuft) Anfragen an die API stellen kann. Hier erlauben wir Anfragen von "http://localhost:3000", was der Standardport für React-Entwicklungsserver ist.
-    allow_origins=["http://localhost:3000"],    # Port für Frontend erlauben
+    allow_origins=[
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    ],
     allow_credentials=True,     # Cookies etc. erlauben
     allow_methods=["*"],        # Alle HTTP-Methoden erlauben (GET, POST, PUT, DELETE etc.) 
     allow_headers=["*"]         # Alle Header erlauben, damit die Frontend-Anwendung die notwendigen Informationen in den Anfragen senden kann (z.B. Content-Type, Authorization etc.)
