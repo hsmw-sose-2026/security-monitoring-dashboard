@@ -10,9 +10,9 @@ from sqlmodel import Session, select
 from app.database import create_db_and_tables, engine
 from app.models import User
 from app.auth_utils import hash_password
-from app.routes import auth as auth_routes
-from app.routes import dashboard as dashboard_routes
+from app.api.router import register_routers
 from app.middleware.security import security_middleware as security_logic
+
 
 
 def seed_text_user():
@@ -56,6 +56,4 @@ async def security_middleware(request: Request, call_next):
 def health_check():
     return {"status": "ok"} 
 
-
-app.include_router(auth_routes.router)    # Hier binden wir den Authentifizierungs-Router ein, damit die Endpunkte aus auth.py verfügbar sind. Das "router" ist das Objekt, das wir in auth.py mit APIRouter erstellt haben. Alle Endpunkte, die in diesem Router definiert sind, werden jetzt unter dem Präfix "/auth" verfügbar sein (z.B. "/auth/login").
-app.include_router(dashboard_routes.router)
+register_routers(app)
