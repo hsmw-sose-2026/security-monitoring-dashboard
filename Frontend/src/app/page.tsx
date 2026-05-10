@@ -33,7 +33,7 @@ export default function Home() {
                             className='flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition-colors min-w-max'>
                             <IconLogout className='size-4' />
                             <span className='text-sm font-medium'>Logout</span>
-                        </Link>
+                        </Link> 
                     </div>
                 </div>
             </header>

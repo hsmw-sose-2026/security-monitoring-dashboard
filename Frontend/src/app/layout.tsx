@@ -1,7 +1,7 @@
-import type {Metadata} from 'next';
-import {Geist, JetBrains_Mono} from 'next/font/google';
-import {Toaster} from '@/components/ui/sonner';
-import {TooltipProvider} from '@/components/ui/tooltip';
+import type { Metadata } from 'next';
+import { Geist, JetBrains_Mono } from 'next/font/google';
+import { Toaster } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import './globals.css';
 
 const geistSans = Geist({
