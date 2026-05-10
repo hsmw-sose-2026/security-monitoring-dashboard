@@ -1,6 +1,30 @@
 """Database access for uploaded file metadata."""
 
-# TODO(Kevin): Datenbankzugriff fuer Upload-Metadaten kapseln.
-# Ziel: Falls UploadedFile genutzt wird, hier eine Funktion zum Speichern von
-# Originalname, Speichername, Endung und Upload-Zeitpunkt bereitstellen.
-# Fertig, wenn upload_service.py Metadaten speichern kann, ohne selbst SQL zu schreiben.
+from sqlmodel import Session
+
+from app.models import UploadedFile
+
+def save_upload_metadata(
+    session: Session,
+    original_filename: str,
+    stored_filename: str,
+    file_extension: str,
+    client_ip: str | None = None,
+) -> UploadedFile:
+
+    # Ein neues UploadedFile-Objekt wird erstellt
+    upload_record = UploadedFile(
+        original_filename=original_filename,
+        stored_filename=stored_filename,
+        file_extension=file_extension,
+        client_ip=client_ip,
+    )
+
+    # das neue Objekt wird der Session hinzugefuegt und in die Datenbank geschrieben
+    session.add(upload_record)
+    session.commit()
+
+    # refreshen damit die automatisch generierten Felder (z.B. id, uploaded_at) im Objekt verfuegbar sind
+    session.refresh(upload_record)
+
+    return upload_record
