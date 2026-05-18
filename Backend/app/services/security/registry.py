@@ -1,9 +1,21 @@
 """Run all configured security detectors for a request."""
 
-# TODO(Jannis): Zentrale Liste aller Detektoren bauen.
-# Ziel: Die Middleware soll nur noch diese Registry aufrufen. Die Registry ruft dann
-# SQLi-, XSS-, Path-Traversal-, Bad-Upload-, Brute-Force- und Rate-Limit-Detektoren auf.
-# Fertig, wenn ein neuer Detektor nur hier eingetragen werden muss und dann automatisch mitlaeuft.
+# TODO(Jannis): Registry auf Spezialdetektoren reduzieren.
+# SQLi, XSS und Path Traversal laufen kuenftig NICHT mehr ueber diese Datei,
+# sondern ueber JSON-Regeln in services/security/rules/*.json:
+# rule_loader -> pattern_detector -> middleware -> event_logger.
+#
+# In registry.py bleiben nur Detektoren mit eigener Logik, die nicht nur Regex
+# ueber Request-Text sind, z.B.:
+# - rate_limit: braucht Zaehler pro source_ip und Zeitfenster
+# - bad_upload: kommt wieder hier rein, wenn Upload-Dateiname/Extension geprueft wird
+#
+# Also:
+# 1. SQL_INJECTION_PATTERNS und detect_sql_injection entfernen.
+# 2. In run_all_detectors die Eintraege sql_injection, xss und path_traversal entfernen.
+# 3. Die Imports/Aufrufe von xss.py und path_traversal.py entfernen.
+# 4. rate_limit funktionsfaehig mit context.source_ip anbinden.
+# 5. bad_upload auch hier lösen
 
 import re
 from typing import Any

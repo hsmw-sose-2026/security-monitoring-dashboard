@@ -1,5 +1,6 @@
 {
   "event_type": "bad_upload",
+  "enabled": "true",
   "severity": "medium",
   "blocked_extensions": [],
   "allowed_extensions": []
