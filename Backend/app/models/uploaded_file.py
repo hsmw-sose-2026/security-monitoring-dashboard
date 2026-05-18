@@ -1,5 +1,14 @@
 """Planned database model for uploaded file metadata."""
 
-# TODO(Kevin): Optionales Datenbankmodell fuer Upload-Metadaten anlegen.
-# Ziel: Originaldateiname, gespeicherter Dateiname, Dateiendung, Upload-Zeitpunkt und Client-IP speichern.
-# Fertig, wenn der Upload-Endpoint Metadaten speichern kann oder bewusst dokumentiert ist, warum das nicht noetig ist.
+from datetime import datetime
+from typing import Optional
+
+from sqlmodel import Field, SQLModel
+
+class UploadedFile(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    original_filename: str
+    stored_filename: str
+    file_extension: str
+    uploaded_at: datetime = Field(default_factory=datetime.utcnow)
+    client_ip: Optional[str] = Field(default=None)

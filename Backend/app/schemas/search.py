@@ -1,6 +1,14 @@
 """Search request and response schemas."""
 
-# TODO(Kevin): Schemas fuer die Demo-Suche definieren.
-# Ziel: SearchResult beschreibt einen gefundenen Eintrag; SearchResponse enthaelt Suchbegriff,
-# Trefferanzahl und Ergebnisliste.
-# Fertig, wenn routes/search.py nicht mehr einfach nur eine rohe Liste zurueckgibt.
+from pydantic import BaseModel
+
+# Request-Schema fuer die Suchanfrage, um die Daten aus dem Frontend zu validieren.
+class SearchResult(BaseModel):
+    name: str
+    description: str | None = None
+
+# Response-Schema fuer die Suchanfrage, um die Suchergebnisse strukturiert an das Frontend zu uebermitteln.
+class SearchResponse(BaseModel):
+    query: str
+    total: int
+    results: list[SearchResult]
