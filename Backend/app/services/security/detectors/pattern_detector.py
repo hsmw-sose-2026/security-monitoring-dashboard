@@ -1,13 +1,9 @@
 """Generic detector for JSON regex pattern rules."""
 
-# TODO(Tim): Generischen Regex-Detektor fuer JSON-Regeln bauen.
-# Ziel: Eine geladene Regeldatei nimmt mehrere Request-Felder und prueft alle Patterns.
-# Fertig, wenn SQLi, XSS und Path Traversal denselben Pattern-Detector wiederverwenden koennen.
-
-
 import re
 
 from app.services.security.request_context import RequestContext
+from app.services.security.rule_loader import get_enabled_rules
 
 
 def run_pattern_detection(rules: dict, context: RequestContext) -> list[dict]:
@@ -54,3 +50,24 @@ def run_pattern_detection(rules: dict, context: RequestContext) -> list[dict]:
                 break  # Pattern hat in einem Feld gematcht, naechstes Pattern
     
     return findings
+
+def run_all_pattern_rules(context: RequestContext) -> list[dict]:
+    """Laeuft alle aktiven Pattern-Regelsaetze gegen den RequestContext.
+    Holt die Regelsaetze ueber get_enabled_rules() und ruft fuer jeden
+    run_pattern_detection() auf. Alle Findings werden zu einer flachen Liste
+    zusammengefuehrt.
+    Wird von der Middleware aufgerufen, damit dort kein Regelset mehr
+    hardcoded steht."""
+    
+    all_findings = []
+    
+    for rule_name, rules in get_enabled_rules().items():
+        # upload_extensions hat ein abweichendes Schema (keine patterns), 
+        # wird durch get_enabled_rules() ausgefiltert, aber zur Sicherheit:
+        if "patterns" not in rules:
+            continue
+        
+        findings = run_pattern_detection(rules, context)
+        all_findings.extend(findings)
+    
+    return all_findings
