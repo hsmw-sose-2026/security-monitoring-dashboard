@@ -15,15 +15,17 @@ def run_pattern_detection(rules: dict, context: RequestContext) -> list[dict]:
     severity = rules.get("severity", "medium")
     patterns = rules.get("patterns", [])
     
-    # Alle durchsuchbaren Felder als (where, text)-Tupel
-    fields_to_check = [
-        ("url", context.full_url),
-        ("body", context.body_text),
-    ]
-    # Form-Felder einzeln dazunehmen, damit wir bei einem Treffer wissen,
-    # in welchem Feld er war (z.B. "form:username")
+    fields_to_check = []
+    # Query-Parameter zuerst pruefen, damit "query:q" als spezifischeres
+    # Feld vor "url" matcht und das where-Label aussagekraeftiger wird.
+    for field_name, field_value in context.query_params.items():
+        fields_to_check.append((f"query:{field_name}", str(field_value)))
+    # Form-Felder einzeln, damit wir bei einem Treffer wissen wo er war
     for field_name, field_value in context.form_fields.items():
         fields_to_check.append((f"form:{field_name}", str(field_value)))
+    # Generische Felder als Fallback fuer alles, was nicht in einem speziellen Feld liegt
+    fields_to_check.append(("url", context.full_url))
+    fields_to_check.append(("body", context.body_text))
     
     findings = []
     
