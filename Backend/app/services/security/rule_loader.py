@@ -1,17 +1,57 @@
 """Load JSON based security detection rules."""
 
-# TODO(Tim): JSON-Regeln aus services/security/rules/*.json laden.
-# Ziel: sqli.json, xss.json, path_traversal.json und upload_extensions.json sollen
-# zentral eingelesen werden, damit Detektoren keine Regex-Listen mehr hart im Code haben.
-# Fertig, wenn fehlerhafte JSON-Dateien eine verstaendliche Fehlermeldung ausloesen.
-
-
 import json
 from pathlib import Path
 
 
 # Ordner mit allen Regel-Dateien (relativ zur aktuellen Datei)
 RULES_DIR = Path(__file__).parent / "rules"
+
+
+def _validate_rule(rule_name: str, data: dict) -> None:
+    """Prueft eine geladene Regel auf Pflichtfelder und korrekte Typen.
+    Wirft RuntimeError mit verstaendlicher Meldung bei Problemen.
+    upload_extensions wird uebersprungen, weil es ein abweichendes Schema hat."""
+    
+    # Sonderfall: upload_extensions hat blocked_extensions statt patterns
+    if rule_name == "upload_extensions":
+        return
+    
+    # Pflichtfelder pruefen
+    required = ["event_type", "severity", "patterns"]
+    for field in required:
+        if field not in data:
+            raise RuntimeError(
+                f"Regel '{rule_name}': Pflichtfeld '{field}' fehlt."
+            )
+    
+    # enabled muss bool sein, Default true wenn fehlt
+    if "enabled" not in data:
+        data["enabled"] = True
+    elif not isinstance(data["enabled"], bool):
+        raise RuntimeError(
+            f"Regel '{rule_name}': 'enabled' muss true/false sein, "
+            f"nicht {type(data['enabled']).__name__} ({data['enabled']!r})."
+        )
+    
+    # patterns muss Liste sein
+    if not isinstance(data["patterns"], list):
+        raise RuntimeError(
+            f"Regel '{rule_name}': 'patterns' muss eine Liste sein."
+        )
+    
+    # Jedes Pattern muss dict mit name/regex/description sein
+    for i, pattern in enumerate(data["patterns"]):
+        if not isinstance(pattern, dict):
+            raise RuntimeError(
+                f"Regel '{rule_name}', Pattern #{i}: muss ein Objekt sein, "
+                f"nicht {type(pattern).__name__}."
+            )
+        for field in ["name", "regex", "description"]:
+            if field not in pattern:
+                raise RuntimeError(
+                    f"Regel '{rule_name}', Pattern #{i}: Feld '{field}' fehlt."
+                )
 
 
 def load_all_rules() -> dict:
@@ -26,6 +66,7 @@ def load_all_rules() -> dict:
         try:
             with open(json_file, encoding="utf-8") as f:
                 rules[rule_name] = json.load(f)
+            _validate_rule(rule_name, rules[rule_name])
         except json.JSONDecodeError as e:
             raise RuntimeError(
                 f"Fehler beim Laden von {json_file.name}: ungueltiges JSON. "

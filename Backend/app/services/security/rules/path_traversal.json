@@ -1,14 +1,47 @@
 {
   "event_type": "path_traversal",
+  "enabled": true,
   "severity": "high",
   "patterns": [
-    "\\.\\./",
-    "\\.\\.%2f",
-    "%2e%2e%2f",
-    "\\.\\.\\",
-    "/etc/passwd",
-    "/etc/shadow",
-    "c:\\windows",
-    "cmd.exe"
+    {
+      "name": "pt_dotdot_slash",
+      "regex": "\\.\\./",
+      "description": "Klassisches Path Traversal mit Forward-Slash"
+    },
+    {
+      "name": "pt_dotdot_url_encoded",
+      "regex": "\\.\\.%2f",
+      "description": "Path Traversal mit URL-kodiertem Slash"
+    },
+    {
+      "name": "pt_full_url_encoded",
+      "regex": "%2e%2e%2f",
+      "description": "Komplett URL-kodiertes Path Traversal"
+    },
+    {
+      "name": "pt_dotdot_backslash",
+      "regex": "\\.\\.\\\\",
+      "description": "Path Traversal mit Windows-Backslash"
+    },
+    {
+      "name": "pt_etc_passwd",
+      "regex": "/etc/passwd",
+      "description": "Zugriffsversuch auf Linux-Passwortdatei"
+    },
+    {
+      "name": "pt_etc_shadow",
+      "regex": "/etc/shadow",
+      "description": "Zugriffsversuch auf Linux-Shadow-Datei"
+    },
+    {
+      "name": "pt_windows_path",
+      "regex": "c:\\\\windows",
+      "description": "Zugriffsversuch auf Windows-Systemverzeichnis"
+    },
+    {
+      "name": "pt_cmd_exe",
+      "regex": "cmd\\.exe",
+      "description": "Zugriffsversuch auf Windows-Command-Shell"
+    }
   ]
 }
