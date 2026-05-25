@@ -94,3 +94,15 @@ def get_rules(name: str) -> dict:
             f"Verfuegbar: {', '.join(ALL_RULES.keys())}"
         )
     return ALL_RULES[name]
+
+def get_enabled_rules() -> dict[str, dict]:
+    """Gibt nur die Regeln zurueck, deren 'enabled' auf True steht.
+    Wird vom pattern_detector benutzt, damit deaktivierte Regeln uebersprungen werden.
+    Sonderfall: Regeln ohne 'enabled'-Feld (z.B. upload_extensions) werden ausgeschlossen,
+    weil sie keine Pattern-Regeln im Standardformat sind."""
+    return {
+        name: data
+        for name, data in ALL_RULES.items()
+        if data.get("enabled") is True
+    }
+
