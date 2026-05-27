@@ -11,6 +11,9 @@ from app.repositories.alert_repository import count_critical_alerts, count_total
 
 from app.schemas.dashboard import StatsResponse
 
+from app.repositories.contact_repository import count_contacts_today
+from app.repositories.upload_repository import count_uploads_today
+
 
 def build_dashboard_stats(session: Session) -> StatsResponse:
     events_per_hour = count_events_per_hour(session)
@@ -20,6 +23,8 @@ def build_dashboard_stats(session: Session) -> StatsResponse:
     critical_alerts = count_critical_alerts(session)
     alerts_today = count_alerts_today(session)
     total_alerts = count_total_alerts(session)
+    contact_messages_today = count_contacts_today(session)
+    uploads_today = count_uploads_today(session)
     # Nur Kennzahlen returnen, recent events und alerts erstmal raus lassen
 
     return StatsResponse(
@@ -30,4 +35,6 @@ def build_dashboard_stats(session: Session) -> StatsResponse:
         critical_alerts=critical_alerts,
         alerts_today=alerts_today,
         total_alerts=total_alerts,
+        contact_messages_today=contact_messages_today,
+        uploads_today=uploads_today,
     )

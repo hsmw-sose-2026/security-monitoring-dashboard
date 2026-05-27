@@ -1,8 +1,10 @@
 """Database access for uploaded file metadata."""
 
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.models import UploadedFile
+
+from datetime import datetime, timezone
 
 def save_upload_metadata(
     session: Session,
@@ -28,3 +30,10 @@ def save_upload_metadata(
     session.refresh(upload_record)
 
     return upload_record
+
+
+def count_uploads_today(session: Session) -> int:
+    now = datetime.now(timezone.utc)
+    start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    statement = select(UploadedFile).where(UploadedFile.uploaded_at >= start_of_day)
+    return len(session.exec(statement).all())
