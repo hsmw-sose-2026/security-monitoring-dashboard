@@ -14,6 +14,8 @@ class StatsResponse(BaseModel):
     critical_alerts: int
     alerts_today: int
     total_alerts: int
+    contact_messages_today: int
+    uploads_today: int
 
 class EventResponse(BaseModel):
     id: int
@@ -23,6 +25,17 @@ class EventResponse(BaseModel):
     path: str
     detail: str
     severity: str
+
+class AttackResponse(BaseModel):
+    source_ip: str
+    start_time: datetime
+    end_time: datetime
+    event_count: int
+    event_types: list[str]
+    severity: str
+    classification: str
+    risk_score: int
+    events: list[EventResponse]
 
 class AlertResponse(BaseModel):
     id: int
