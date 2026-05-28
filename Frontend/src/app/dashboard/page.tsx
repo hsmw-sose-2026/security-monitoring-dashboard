@@ -2,6 +2,7 @@
 
 import {getBackendHost} from '@/actions/getBackendHost';
 import {AttackRow} from '@/components/dashboard/attack-row';
+import {DateInput, TimeInput} from '@/components/dashboard/datetime-input';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
@@ -12,11 +13,21 @@ import {toast} from 'sonner';
 
 export default function Dashboard() {
     const [attacks, setAttacks] = useState<Attack[]>([]);
+    const [startDate, setStartDate] = useState<Date | null>(null);
+    const [startTime, setStartTime] = useState<number | null>(null);
+    const [endDate, setEndDate] = useState<Date | null>(null);
+    const [endTime, setEndTime] = useState<number | null>(null);
     const [classification, setClassification] = useState<string>('Alle Klassifizierungen');
     const [sourceIP, setSourceIp] = useState<string>('');
     const [severity, setSeverity] = useState<string>('Alle Severities');
 
-    const filteredAttacks = useMemo(() => filterAttacks(attacks, classification, sourceIP.trim(), severity), [attacks, classification, sourceIP, severity]);
+    const startDateTime = useMemo(() => (startDate !== null && startTime !== null ? new Date(startDate.getTime() + startTime) : null), [startDate, startTime]);
+    const endDateTime = useMemo(() => (endDate !== null && endTime !== null ? new Date(endDate.getTime() + endTime) : null), [endDate, endTime]);
+
+    const filteredAttacks = useMemo(
+        () => filterAttacks(attacks, startDateTime, endDateTime, classification, sourceIP.trim(), severity),
+        [attacks, startDateTime, endDateTime, classification, sourceIP, severity],
+    );
 
     const [fetchFailed, setFetchFailed] = useState(false);
 
@@ -47,6 +58,15 @@ export default function Dashboard() {
             <h1 className='text-3xl font-bold mb-8'>Attacks</h1>
             <div className='flex flex-col items-center gap-4 shrink-0 h-[calc(100vh-4rem)] min-h-0 pb-4'>
                 <div className='flex gap-4'>
+                    <div className='flex items-center'>
+                        <DateInput date={startDate} setDate={setStartDate} placeholder='Startdatum' />
+                        <div className='bg-muted/80 w-3 h-3 border-y z-10 -mx-px'></div>
+                        <TimeInput time={startTime} setTime={setStartTime} />
+                        <span className='mx-2'>bis</span>
+                        <DateInput date={endDate} setDate={setEndDate} placeholder='Enddatum' />
+                        <div className='bg-muted/80 w-3 h-3 border-y z-10 -mx-px'></div>
+                        <TimeInput time={endTime} setTime={setEndTime} />
+                    </div>
                     <Select value={classification} onValueChange={(value) => value && setClassification(value)}>
                         <SelectTrigger>
                             <SelectValue placeholder='Klassifizierung' />
