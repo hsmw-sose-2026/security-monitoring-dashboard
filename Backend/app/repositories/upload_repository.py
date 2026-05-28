@@ -10,6 +10,8 @@ def save_upload_metadata(
     stored_filename: str,
     file_extension: str,
     client_ip: str | None = None,
+    content_type: str | None = None,
+    file_size: int | None = None,
 ) -> UploadedFile:
 
     # Ein neues UploadedFile-Objekt wird erstellt
@@ -18,6 +20,8 @@ def save_upload_metadata(
         stored_filename=stored_filename,
         file_extension=file_extension,
         client_ip=client_ip,
+        content_type=content_type,
+        file_size=file_size,
     )
 
     # das neue Objekt wird der Session hinzugefuegt und in die Datenbank geschrieben
