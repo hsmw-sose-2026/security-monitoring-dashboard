@@ -1,5 +1,7 @@
 'use client';
 
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {toast} from 'sonner';
 import {getBackendHost} from '@/actions/getBackendHost';
 import {AttackRow} from '@/components/dashboard/attack-row';
 import {DateInput, TimeInput} from '@/components/dashboard/datetime-input';
@@ -8,8 +10,6 @@ import {Input} from '@/components/ui/input';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {filterAttacks, getUniqueOf} from '@/lib/dashboard';
 import type {Attack} from '@/types/dashboard';
-import {useCallback, useEffect, useMemo, useState} from 'react';
-import {toast} from 'sonner';
 
 export default function Dashboard() {
     const [attacks, setAttacks] = useState<Attack[]>([]);

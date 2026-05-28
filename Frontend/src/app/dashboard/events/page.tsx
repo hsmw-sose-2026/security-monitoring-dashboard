@@ -1,11 +1,11 @@
 'use client';
 
+import {Button} from '@base-ui/react';
 import {useCallback, useEffect, useState} from 'react';
 import {toast} from 'sonner';
 import {getBackendHost} from '@/actions/getBackendHost';
 import {EventTable} from '@/components/dashboard/event-table';
 import type {Event} from '@/types/dashboard';
-import {Button} from '@base-ui/react';
 
 export default function Events() {
     const [events, setEvents] = useState<Event[]>([]);

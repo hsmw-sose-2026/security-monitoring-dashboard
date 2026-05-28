@@ -5,11 +5,11 @@ import {toast} from 'sonner';
 import {getBackendHost} from '@/actions/getBackendHost';
 import {AlertRow} from '@/components/dashboard/alert-row';
 import {DateInput, TimeInput} from '@/components/dashboard/datetime-input';
+import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {filterAlerts, getUniqueOf} from '@/lib/dashboard';
 import type {Alert} from '@/types/dashboard';
-import {Button} from '@/components/ui/button';
 
 export default function Alerts() {
     const [alerts, setAlerts] = useState<Alert[]>([]);

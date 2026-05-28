@@ -3,11 +3,11 @@
 import {useCallback, useEffect, useState} from 'react';
 import {toast} from 'sonner';
 import {getBackendHost} from '@/actions/getBackendHost';
-import {KPICard} from '@/components/dashboard/kpi-card';
-import type {Stats} from '@/types/dashboard';
-import {Button} from '@/components/ui/button';
 import {EventsByType} from '@/components/dashboard/charts/events-by-types';
 import {EventsPerHour} from '@/components/dashboard/charts/events-per-hour';
+import {KPICard} from '@/components/dashboard/kpi-card';
+import {Button} from '@/components/ui/button';
+import type {Stats} from '@/types/dashboard';
 
 export default function Stats() {
     const [stats, setStats] = useState<Stats>();

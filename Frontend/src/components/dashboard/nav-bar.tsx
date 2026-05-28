@@ -1,9 +1,9 @@
 'use client';
 
-import {cn} from '@/lib/utils';
 import {IconCalendarDue, IconGraph, IconListCheck, IconSpeakerphone, IconSword} from '@tabler/icons-react';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
+import {cn} from '@/lib/utils';
 
 export function NavBar() {
     const pathname = usePathname();

@@ -1,10 +1,10 @@
 'use client';
 
+import type {ComponentProps} from 'react';
+import {CartesianGrid, Line, LineChart, XAxis} from 'recharts';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent} from '@/components/ui/chart';
 import {cn} from '@/lib/utils';
-import type {ComponentProps} from 'react';
-import {CartesianGrid, Line, LineChart, XAxis} from 'recharts';
 
 const chartConfig = {
     eventCount: {
