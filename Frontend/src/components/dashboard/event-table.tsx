@@ -1,6 +1,6 @@
 'use client';
 
-import {type ComponentProps, useMemo, useState} from 'react';
+import {type ComponentProps, type Dispatch, type SetStateAction, useMemo, useState} from 'react';
 import {EventRow} from '@/components/dashboard/event-row';
 import {Input} from '@/components/ui/input';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
@@ -8,8 +8,17 @@ import {filterEvents, getUniqueOf} from '@/lib/dashboard';
 import {cn} from '@/lib/utils';
 import type {SecurityEvent} from '@/types/dashboard';
 import {DateInput, TimeInput} from './datetime-input';
+import {Button} from '../ui/button';
 
-export function EventTable({events, className, ...props}: {events: SecurityEvent[]} & ComponentProps<'div'>) {
+export function EventTable({
+    events,
+    request,
+    className,
+    ...props
+}: {
+    events: SecurityEvent[];
+    request?: {fetchFailed: boolean; setFetchFailed: Dispatch<SetStateAction<boolean>>; fetchEvents: () => void};
+} & ComponentProps<'div'>) {
     const [startDate, setStartDate] = useState<Date | null>(null);
     const [startTime, setStartTime] = useState<number | null>(null);
     const [endDate, setEndDate] = useState<Date | null>(null);
@@ -21,6 +30,11 @@ export function EventTable({events, className, ...props}: {events: SecurityEvent
 
     const startDateTime = useMemo(() => (startDate !== null && startTime !== null ? new Date(startDate.getTime() + startTime) : null), [startDate, startTime]);
     const endDateTime = useMemo(() => (endDate !== null && endTime !== null ? new Date(endDate.getTime() + endTime) : null), [endDate, endTime]);
+
+    const filteredEvents = useMemo(
+        () => filterEvents(events, startDateTime, endDateTime, eventType, sourceIP.trim(), path, severity),
+        [events, startDateTime, endDateTime, eventType, sourceIP, path, severity],
+    );
 
     return (
         <div className={cn('flex flex-col items-center gap-4', className)} {...props}>
@@ -88,9 +102,22 @@ export function EventTable({events, className, ...props}: {events: SecurityEvent
                         </tr>
                     </thead>
                     <tbody>
-                        {filterEvents(events, startDateTime, endDateTime, eventType, sourceIP.trim(), path, severity).map((event) => (
-                            <EventRow data={event} key={event.id} />
-                        ))}
+                        {filteredEvents.length > 0 ? (
+                            filteredEvents.map((event) => <EventRow data={event} key={event.id} />)
+                        ) : (
+                            <tr>
+                                <td colSpan={6} className='text-center py-8 text-muted-foreground font-medium text-lg'>
+                                    {!request?.fetchFailed ? (
+                                        'Keine Einträge mit diesem Filter'
+                                    ) : (
+                                        <div className='flex flex-col items-center gap-2'>
+                                            <span>Events konnten nicht geladen werden</span>
+                                            <Button onClick={request.fetchEvents}>Erneut versuchen</Button>
+                                        </div>
+                                    )}
+                                </td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
             </div>

@@ -32,7 +32,7 @@ export function EventRow({data, className, ...props}: {data: SecurityEvent} & Co
                     <TooltipTrigger className='inline-block'>
                         <IconInfoCircle className='size-5' />
                     </TooltipTrigger>
-                    <TooltipContent>{data.detail}</TooltipContent>
+                    <TooltipContent className='text-sm font-medium'>{data.detail}</TooltipContent>
                 </Tooltip>
             </td>
         </tr>
