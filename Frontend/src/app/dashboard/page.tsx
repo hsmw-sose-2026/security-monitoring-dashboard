@@ -107,6 +107,7 @@ export default function Dashboard() {
                                 <th>Klassifizierung</th>
                                 <th>Source IP</th>
                                 <th>Severity</th>
+                                <th>Risk Score</th>
                                 <th className='w-8'></th>
                             </tr>
                         </thead>
@@ -115,7 +116,7 @@ export default function Dashboard() {
                                 filteredAttacks.map((attack, i) => <AttackRow data={attack} key={i} />)
                             ) : (
                                 <tr>
-                                    <td colSpan={7} className='text-center py-8 text-muted-foreground font-medium text-lg'>
+                                    <td colSpan={8} className='text-center py-8 text-muted-foreground font-medium text-lg'>
                                         {!fetchFailed ? (
                                             'Keine Einträge mit diesem Filter'
                                         ) : (

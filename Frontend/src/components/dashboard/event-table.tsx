@@ -6,7 +6,7 @@ import {Input} from '@/components/ui/input';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {filterEvents, getUniqueOf} from '@/lib/dashboard';
 import {cn} from '@/lib/utils';
-import type {SecurityEvent} from '@/types/dashboard';
+import type {Event} from '@/types/dashboard';
 import {DateInput, TimeInput} from './datetime-input';
 import {Button} from '../ui/button';
 
@@ -16,7 +16,7 @@ export function EventTable({
     className,
     ...props
 }: {
-    events: SecurityEvent[];
+    events: Event[];
     request?: {fetchFailed: boolean; setFetchFailed: Dispatch<SetStateAction<boolean>>; fetchEvents: () => void};
 } & ComponentProps<'div'>) {
     const [startDate, setStartDate] = useState<Date | null>(null);

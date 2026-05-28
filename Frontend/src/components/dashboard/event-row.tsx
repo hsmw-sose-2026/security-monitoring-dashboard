@@ -2,10 +2,10 @@
 
 import {IconInfoCircle} from '@tabler/icons-react';
 import type {ComponentProps} from 'react';
-import type {SecurityEvent} from '@/types/dashboard';
+import type {Event} from '@/types/dashboard';
 import {Tooltip, TooltipContent, TooltipTrigger} from '../ui/tooltip';
 
-export function EventRow({data, className, ...props}: {data: SecurityEvent} & ComponentProps<'tr'>) {
+export function EventRow({data, className, ...props}: {data: Event} & ComponentProps<'tr'>) {
     return (
         <tr className={`hover:bg-neutral-800 h-11 [&>td]:p-4 [&>td]:py-2 border-b last:border-none border-neutral-700 ${className}`} {...props}>
             <td className='font-mono text-neutral-400'>

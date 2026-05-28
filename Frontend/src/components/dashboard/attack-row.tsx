@@ -2,7 +2,7 @@
 
 import {IconEye} from '@tabler/icons-react';
 import type {ComponentProps} from 'react';
-import {formatRelativeDate} from '@/lib/dashboard';
+import {formatRelativeDate, mapRange} from '@/lib/dashboard';
 import type {Attack} from '@/types/dashboard';
 import {Button} from '../ui/button';
 import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from '../ui/dialog';
@@ -46,6 +46,17 @@ export function AttackRow({data, className, ...props}: {data: Attack} & Componen
             <td>
                 <SeverityBadge severity={data.severity} />
             </td>
+            <td>
+                <span
+                    className='font-mono text-sm px-2 py-1 rounded-md bg-muted'
+                    style={{
+                        color: `oklch(from var(--color-teal-500) l c h / ${mapRange(data.risk_score, 0, 100, 0.5, 1)})`,
+                        background: `oklch(from var(--color-teal-500) l c h / ${mapRange(data.risk_score, 0, 100, 0.1, 0.3)})`,
+                    }}
+                >
+                    {data.risk_score}
+                </span>
+            </td>
             <td className='flex items-center justify-center h-16'>
                 <Dialog>
                     <DialogTrigger
@@ -73,6 +84,18 @@ export function AttackRow({data, className, ...props}: {data: Attack} & Componen
                             <div>
                                 <span>Severity: </span>
                                 <SeverityBadge severity={data.severity} />
+                            </div>
+                            <div>
+                                <span>Risk Score: </span>
+                                <span
+                                    className='font-mono text-sm px-2 py-1 rounded-md bg-muted'
+                                    style={{
+                                        color: `oklch(from var(--color-teal-500) l c h / ${mapRange(data.risk_score, 0, 100, 0.5, 1)})`,
+                                        background: `oklch(from var(--color-teal-500) l c h / ${mapRange(data.risk_score, 0, 100, 0.1, 0.3)})`,
+                                    }}
+                                >
+                                    {data.risk_score}
+                                </span>
                             </div>
                         </div>
                         <h3 className='text-center font-semibold text-lg'>Events</h3>

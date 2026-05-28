@@ -4,11 +4,11 @@ import {useCallback, useEffect, useState} from 'react';
 import {toast} from 'sonner';
 import {getBackendHost} from '@/actions/getBackendHost';
 import {EventTable} from '@/components/dashboard/event-table';
-import type {SecurityEvent} from '@/types/dashboard';
+import type {Event} from '@/types/dashboard';
 import {Button} from '@base-ui/react';
 
 export default function Events() {
-    const [events, setEvents] = useState<SecurityEvent[]>([]);
+    const [events, setEvents] = useState<Event[]>([]);
 
     const [fetchFailed, setFetchFailed] = useState(false);
 
@@ -20,7 +20,7 @@ export default function Events() {
 
             if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
 
-            const data = (await response.json()) as SecurityEvent[];
+            const data = (await response.json()) as Event[];
             setEvents([...data]);
             setFetchFailed(false);
             toast.success('Events erfolgreich geladen.', {id: loading});

@@ -1,4 +1,4 @@
-import type {Alert, Attack, SecurityEvent} from '@/types/dashboard';
+import type {Alert, Attack, Event} from '@/types/dashboard';
 
 export function getUniqueOf<T, K extends keyof T>(data: T[], key: K): T[K][] {
     return [...new Set(data.map((e) => e[key]))].filter((val) => val !== null && val !== undefined) as T[K][];
@@ -53,15 +53,19 @@ export function formatRelativeDate(date1: Date, date2: Date): string {
     return parts.join(' ');
 }
 
+export const mapRange = (value: number, inMin: number, inMax: number, outMin: number, outMax: number) => {
+    return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+};
+
 export function filterEvents(
-    events: SecurityEvent[],
+    events: Event[],
     startDateTime: Date | null,
     endDateTime: Date | null,
-    eventType: SecurityEvent['event_type'],
-    sourceIP: SecurityEvent['source_ip'],
-    path: SecurityEvent['path'],
-    severity: SecurityEvent['severity'],
-): SecurityEvent[] {
+    eventType: Event['event_type'],
+    sourceIP: Event['source_ip'],
+    path: Event['path'],
+    severity: Event['severity'],
+): Event[] {
     const filteredEvents = [];
 
     for (const event of events) {
