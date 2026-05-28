@@ -10,6 +10,7 @@ from app.services.search_service import search_items
 router = APIRouter(prefix="/search", tags=["search"])
 
 @router.get("", response_model=SearchResponse)
-async def search(q: str = Query(..., description="Suchbegriff – erforderlich, Gross-/Kleinschreibung wird ignoriert.")):
+#min_length=1 verhindert leere Suchanfragen
+async def search(q: str = Query(..., min_length=1, description="Suchbegriff – erforderlich, Gross-/Kleinschreibung wird ignoriert.")):
     # Gesamte Suchlogik und Listenverwaltung liegt im Service
     return search_items(q)
