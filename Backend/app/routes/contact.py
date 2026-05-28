@@ -3,7 +3,7 @@
 # Fuer den Prototyp reicht es wenn das erstmal in der DB gespeichert wird.
 # Die eigentliche Datenbankoperation kapselt das Repository.
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlmodel import Session
 
 from app.database import get_session
@@ -15,8 +15,13 @@ router = APIRouter(prefix="/contact", tags=["contact"])
 
 @router.post("", response_model=ContactResponse, status_code=status.HTTP_201_CREATED)
 def send_contact_message(data: ContactCreate, session: Session = Depends(get_session)):
-    # Nachricht ueber das Repository in der Datenbank ablegen
-    saved = create_contact_message(session=session, data=data)
+
+    try:
+        # Nachricht ueber das Repository in der Datenbank ablegen
+        saved = create_contact_message(session=session, data=data)
+    except RuntimeError as e:
+        # Fehlerbehandlung, z.B. wenn die Nachricht nicht gespeichert werden konnte
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
     # ContactResponse aus dem gespeicherten Objekt zusammenbauen
     return ContactResponse(
