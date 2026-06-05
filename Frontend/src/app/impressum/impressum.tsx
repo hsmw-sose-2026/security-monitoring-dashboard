@@ -1,3 +1,4 @@
+import SearchBar from '@/components/SearchBar';
 import { IconSearch, IconCloud, IconLogout } from '@tabler/icons-react';
 import Link from 'next/link';
 
@@ -15,12 +16,7 @@ export default function Impressum() {
                     </div>
                     
                     {/* Suchleiste  */}
-                    <div className='flex-1 max-w-2xl mx-8'>
-                        <div className='flex items-center gap-2 border border-gray-300 rounded-full px-4 py-2 bg-white shadow-sm'>
-                            <IconSearch className='size-5 text-blue-500' />
-                            <input type='text' placeholder='Suche ...' className='outline-none w-full text-sm'/>
-                        </div>
-                    </div>
+                    <SearchBar />
                     
                     {/* Logout Button */}
                     <div className='flex items-center'>
