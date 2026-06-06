@@ -8,9 +8,8 @@ from sqlmodel import Session, select
 
 from app.database import get_session
 from app.models import User
-from app.auth_utils import verify_password
-
 from app.services.security.event_logger import log_security_event
+from app.auth_utils import verify_password, create_access_token
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])   # APIRouter ermöglicht es, die Routen in verschiedene Module zu organisieren. Hier erstellen wir einen Router für alle Authentifizierungs-bezogenen Endpunkte, der später in main.py eingebunden wird.
@@ -36,9 +35,12 @@ def login(data: LoginRequest, request: Request, session: Session = Depends(get_s
         log_failed_login(session, source_ip, path, data.username)   # Schreibt Event in die Datenbank
         raise HTTPException(status_code=401, detail="Ungültiger Benutzername oder Passwort")
     
+    # Bei erfolgreichem Login: Token generieren und mitschicken
+    access_token = create_access_token(username=user.username, role=user.role)
+    
     return {
-        "status": "ok",
-        "message": "Login erfolgreich",
+        "access_token": access_token,
+        "token_type": "bearer",
         "username": user.username,
-        "role": user.role
+        "role": user.role,
     }

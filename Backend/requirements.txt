@@ -1,5 +1,5 @@
 # Python Abhaengigkeiten kommen spaeter hier rein.
-# Wahrscheinlich z.B. fastapi, uvicorn, sqlmodel, python-jose und passlib.
+# Wahrscheinlich z.B. fastapi, uvicorn, sqlmodel und passlib.
 
 fastapi             # FastAPI ist ein modernes, schnelles (high-performance) Web-Framework für den Aufbau von APIs mit Python 3.7+ basierend auf Standard-Python-Typen.    
 uvicorn[standard]   # Server für FastAPI, der asynchronen Support bietet und auf Uvicorn basiert. -- Starten Sie den Server mit uvicorn main:app --reload
@@ -7,3 +7,4 @@ sqlmodel            # SQLModel ist eine ORM-Bibliothek, die auf SQLAlchemy und P
 bcrypt              # passlib ist eine Bibliothek für die Hashing und Verwaltung von Passwörtern. bcrypt ist ein sicheres Hashing-Verfahren.
 python-multipart    # python-multipart ist eine Bibliothek zum Verarbeiten von multipart/Form-Data, oft verwendet bei HTTP-Uploads.
 requests
+pyjwt               # JSON Web Tokens fuer Authentifizierung. Signiert und verifiziert Tokens.
