@@ -1,5 +1,10 @@
 import type {Alert, Attack, Event} from '@/types/dashboard';
 
+export function getAuthHeaders(): HeadersInit {
+    const token = localStorage.getItem('access_token');
+    return token ? {Authorization: `Bearer ${token}`} : {};
+}
+
 export function getUniqueOf<T, K extends keyof T>(data: T[], key: K): T[K][] {
     return [...new Set(data.map((e) => e[key]))].filter((val) => val !== null && val !== undefined) as T[K][];
 }

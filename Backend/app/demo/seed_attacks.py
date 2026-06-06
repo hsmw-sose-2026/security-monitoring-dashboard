@@ -12,6 +12,8 @@ import requests
 
 BASE_URL = os.getenv("BACKEND_BASE_URL", "http://localhost:8000")
 TIMEOUT_SECONDS = 5
+USERNAME = os.getenv("DEMO_USERNAME", "admin")
+PASSWORD = os.getenv("DEMO_PASSWORD", "admin123")
 
 
 def print_result(label: str, response: requests.Response) -> None:
@@ -84,10 +86,25 @@ def check_backend() -> None:
     print_result("health", response)
 
 
+def login_headers() -> dict[str, str]:
+    response = requests.post(
+        f"{BASE_URL}/auth/login",
+        json={"username": USERNAME, "password": PASSWORD},
+        timeout=TIMEOUT_SECONDS,
+    )
+    print_result("dashboard_login", response)
+    response.raise_for_status()
+
+    token = response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
 def print_dashboard_summary() -> None:
-    stats_response = requests.get(f"{BASE_URL}/dashboard/stats", timeout=TIMEOUT_SECONDS)
-    alerts_response = requests.get(f"{BASE_URL}/dashboard/alerts", timeout=TIMEOUT_SECONDS)
-    attacks_response = requests.get(f"{BASE_URL}/dashboard/attacks", timeout=TIMEOUT_SECONDS)
+    headers = login_headers()
+
+    stats_response = requests.get(f"{BASE_URL}/dashboard/stats", headers=headers, timeout=TIMEOUT_SECONDS)
+    alerts_response = requests.get(f"{BASE_URL}/dashboard/alerts", headers=headers, timeout=TIMEOUT_SECONDS)
+    attacks_response = requests.get(f"{BASE_URL}/dashboard/attacks", headers=headers, timeout=TIMEOUT_SECONDS)
 
     print_result("dashboard_stats", stats_response)
     print_result("dashboard_alerts", alerts_response)

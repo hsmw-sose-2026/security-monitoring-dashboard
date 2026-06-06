@@ -1,6 +1,6 @@
 'use client';
 
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {toast} from 'sonner';
 import {getBackendHost} from '@/actions/getBackendHost';
 import {AlertRow} from '@/components/dashboard/alert-row';
@@ -8,7 +8,7 @@ import {DateInput, TimeInput} from '@/components/dashboard/datetime-input';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
-import {filterAlerts, getUniqueOf} from '@/lib/dashboard';
+import {filterAlerts, getAuthHeaders, getUniqueOf} from '@/lib/dashboard';
 import type {Alert} from '@/types/dashboard';
 
 export default function Alerts() {
@@ -31,12 +31,13 @@ export default function Alerts() {
     );
 
     const [fetchFailed, setFetchFailed] = useState(false);
+    const didFetch = useRef(false);
 
     const fetchAlerts = useCallback(async () => {
         const loading = toast.loading('Alerts werden geladen');
 
         try {
-            const response = await fetch(`${await getBackendHost()}/dashboard/alerts`);
+            const response = await fetch(`${await getBackendHost()}/dashboard/alerts`, {headers: getAuthHeaders()});
 
             if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
 
@@ -51,6 +52,8 @@ export default function Alerts() {
     }, []);
 
     useEffect(() => {
+        if (didFetch.current) return;
+        didFetch.current = true;
         fetchAlerts();
     }, [fetchAlerts]);
 

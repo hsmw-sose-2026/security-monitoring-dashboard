@@ -2,7 +2,7 @@
 # Liefern dem Frontend die Daten zum Anzeigen: einzelne Events, Alerts,
 # gruppierte Angriffe und ein paar allgemeine Zahlen.
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session
 
 from app.database import get_session
@@ -23,15 +23,23 @@ router = APIRouter(
 )
 
 @router.get("/events", response_model=list[EventResponse])
-def list_events(session: Session = Depends(get_session), limit: int = 100):
+def list_events(
+    session: Session = Depends(get_session),
+    limit: int = Query(default=100, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+):
     # Neueste Events zuerst, standardmaessig die letzten 100
-    return list_recent_events(session, limit)
+    return list_recent_events(session, limit, offset)
 
 
 @router.get("/alerts", response_model=list[AlertResponse])
-def list_alerts(session: Session = Depends(get_session), limit: int = 100):
+def list_alerts(
+    session: Session = Depends(get_session),
+    limit: int = Query(default=100, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+):
     # Alerts sind die "Schlussfolgerungen" aus mehreren Events (z.B. Brute Force)
-    return list_recent_alerts(session, limit)
+    return list_recent_alerts(session, limit, offset)
 
 
 @router.get("/attacks", response_model=list[AttackResponse])

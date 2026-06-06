@@ -12,9 +12,9 @@ from app.services.security.detectors.pattern_detector import run_all_pattern_rul
 from app.services.security import registry
 
 
-def log_finding(finding: dict, source_ip: str, path: str):
+def log_finding(finding: dict, source_ip: str, path: str, request_id: str):
     """Schreibt einen einzelnen Finding als SecurityEvent in die DB."""
-    detail = f"{finding['description']}: {finding['matched_text']} in {finding['where']} erkannt"
+    detail = f"[request_id={request_id}] {finding['description']}: {finding['matched_text']} in {finding['where']} erkannt"
 
     with Session(engine) as session:
         log_security_event(
@@ -26,7 +26,7 @@ def log_finding(finding: dict, source_ip: str, path: str):
             severity=finding["severity"],
         )
 
-def log_special_finding(detector_name: str, result: dict, source_ip: str, path: str):
+def log_special_finding(detector_name: str, result: dict, source_ip: str, path: str, request_id: str):
     """Schreibt einen Spezialdetektor-Treffer als SecurityEvent in die DB.
     Spezialdetektoren returnen heterogene Dicts (Rate Limit: count/window,
     Bad Upload: extension/filename). Wir extrahieren das Wesentliche und
@@ -34,6 +34,7 @@ def log_special_finding(detector_name: str, result: dict, source_ip: str, path: 
     
     severity = result.get("severity", "medium")
     detail = result.get("detail") or str(result)
+    detail = f"[request_id={request_id}] {detail}"
     
     with Session(engine) as session:
         log_security_event(
@@ -54,6 +55,8 @@ async def security_middleware(request: Request, call_next):
     # 1. Kontext aus dem Request bauen
     context = await build_context(request)
 
+    request_id = getattr(request.state, "request_id", "unknown")
+
     # 2. Alle Pattern-Regeln (SQLi, XSS, Path Traversal) durchlaufen
     pattern_findings = run_all_pattern_rules(context)
 
@@ -62,8 +65,8 @@ async def security_middleware(request: Request, call_next):
 
     # 4. Pattern-Findings loggen
     for finding in pattern_findings:
-        print(f"[Middleware] {finding['event_type']} erkannt ({finding['name']}): {finding['matched_text']} in {finding['where']}")
-        log_finding(finding, context.source_ip, context.path)
+        print(f"[Middleware] {request_id} {finding['event_type']} erkannt ({finding['name']}): {finding['matched_text']} in {finding['where']}")
+        log_finding(finding, context.source_ip, context.path, request_id)
 
     # 5. Spezialdetektor-Treffer loggen
     # Spezialdetektoren returnen entweder None oder ein dict mit eigenen Feldern.
@@ -74,7 +77,8 @@ async def security_middleware(request: Request, call_next):
             continue
         if detector_name in ("sql_injection", "xss", "path_traversal"):
             continue  # Doppelt - laeuft schon ueber Pattern-Detector
-        log_special_finding(detector_name, result, context.source_ip, context.path)
+        print(f"[Middleware] {request_id} {detector_name} erkannt: {result}")
+        log_special_finding(detector_name, result, context.source_ip, context.path, request_id)
 
     # 6. Request normal weiterleiten
     response = await call_next(request)

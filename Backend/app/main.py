@@ -1,11 +1,14 @@
 # Hier wird die FastAPI App erstellt und alles zusammengeführt.
 # Also z.B. Router einbinden, Middleware registrieren und CORS setzen.
-# Sinnvoll waere auch ein kleiner /health Endpoint damit man direkt sieht ob der Server laeuft.
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select
+
+from uuid import uuid4
 
 from app.database import create_db_and_tables, engine
 from app.models import User
@@ -53,10 +56,39 @@ app.add_middleware(
 
 @app.middleware("http")
 async def security_middleware(request: Request, call_next):
-    return await security_logic(request, call_next)
+    request_id = str(uuid4())
+    request.state.request_id = request_id
+
+    print(f"[Request] {request_id} {request.method} {request.url.path}")
+
+    response = await security_logic(request, call_next)
+    response.headers["X-Request-ID"] = request_id
+
+    return response
 
 @app.get("/health")     # einfacher Endpoint, um zu überprüfen, ob der Server läuft. Gibt einfach ein JSON mit "status": "ok" zurück
 def health_check():
     return {"status": "ok"} 
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": "Invalid request",
+            "error_code": "validation_error",
+        },
+    )
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "detail": exc.detail,
+            "error_code": f"http_{exc.status_code}",
+        },
+    )
+
 
 register_routers(app)

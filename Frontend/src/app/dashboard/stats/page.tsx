@@ -1,24 +1,26 @@
 'use client';
 
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {toast} from 'sonner';
 import {getBackendHost} from '@/actions/getBackendHost';
 import {EventsByType} from '@/components/dashboard/charts/events-by-types';
 import {EventsPerHour} from '@/components/dashboard/charts/events-per-hour';
 import {KPICard} from '@/components/dashboard/kpi-card';
 import {Button} from '@/components/ui/button';
+import {getAuthHeaders} from '@/lib/dashboard';
 import type {Stats} from '@/types/dashboard';
 
 export default function Stats() {
     const [stats, setStats] = useState<Stats>();
 
     const [fetchFailed, setFetchFailed] = useState(false);
+    const didFetch = useRef(false);
 
     const fetchStats = useCallback(async () => {
         const loading = toast.loading('Statistiken werden geladen');
 
         try {
-            const response = await fetch(`${await getBackendHost()}/dashboard/stats`);
+            const response = await fetch(`${await getBackendHost()}/dashboard/stats`, {headers: getAuthHeaders()});
 
             if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
 
@@ -33,6 +35,8 @@ export default function Stats() {
     }, []);
 
     useEffect(() => {
+        if (didFetch.current) return;
+        didFetch.current = true;
         fetchStats();
     }, [fetchStats]);
 

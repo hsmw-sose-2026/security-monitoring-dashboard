@@ -31,8 +31,12 @@ def create_event(
     session.refresh(event)
     return event
 
-def list_recent_events(session: Session, limit: int = 100) -> list[SecurityEvent]:
-    statement = select(SecurityEvent).order_by(SecurityEvent.timestamp.desc()).limit(limit) #die letzten 100 security events aus der datenbank selektieren
+def list_recent_events(session: Session, limit: int = 100, offset: int = 0) -> list[SecurityEvent]:
+    statement = (
+        select(SecurityEvent)
+        .order_by(SecurityEvent.timestamp.desc())
+        .offset(offset)
+        .limit(limit)) #die letzten 100 security events aus der datenbank selektieren
     return session.exec(statement).all() #sql select ausführen und die events returnen
 
 def count_events_today(session: Session) -> int:

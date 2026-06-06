@@ -1,22 +1,57 @@
 @import "tailwindcss";
 
 :root {
-    --background: #ffffff;
-    --foreground: #171717;
+    --background: #252525;
+    --background-2: #2c2c2c;
+    --card: #2c2c2c;
+    --foreground: #ededed;
+    --foreground-muted: #a3a3a3;
+    --foreground-2: #4a81e0;
+    --border: #2a2a2a;
+    --input: #393939;
+    --ring: #3572db;
+    --primary: #2c2c2c;
+    --primary-hover: #393939;
+    --primary-2: #5f97f7;
+    --primary-3-hover: #3572db;
+    --primary-2-hover: #2e3745;
+}
+
+.light {
+    --background: #fff;
+    --background-2: #f2f2f2;
+    --card: #f2f2f2;
+    --foreground: #151515;
+    --foreground-muted: #272727;
+    --foreground-2: #3572db;
+    --border: #f2f2f2;
+    --input: #fff;
+    --ring: #3572db;
+    --primary: #f2f2f2;
+    --primary-hover: #dfdfdf;
+    --primary-2: #3572db;
+    --primary-3-hover: #5f97f7;
+    --primary-2-hover: #cfddf5;
 }
 
 @theme inline {
     --color-background: var(--background);
+    --color-background-2: var(--background-2);
+    --color-background-subtle: var(--background-subtle);
+    --color-card: var(--card);
     --color-foreground: var(--foreground);
+    --color-foreground-muted: var(--foreground-muted);
+    --color-foreground-2: var(--foreground-2);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-primary: var(--primary);
+    --color-primary-hover: var(--primary-hover);
+    --color-primary-2: var(--primary-2);
+    --color-primary-2-hover: var(--primary-2-hover);
+    --color-primary-3-hover: var(--primary-3-hover);
     --font-sans: var(--font-geist-sans);
     --font-mono: var(--font-jb-mono);
-}
-
-@media (prefers-color-scheme: white) {
-    :root {
-        --background: #ffffff;
-        --foreground: #171717;
-    }
 }
 
 * {
