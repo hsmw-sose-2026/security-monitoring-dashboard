@@ -4,6 +4,8 @@
 import bcrypt
 import jwt
 from datetime import datetime, timedelta, timezone
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 # JWT-Konfiguration
 # WICHTIG: SECRET_KEY ist hartcodiert nur fuer den Prototyp.
@@ -37,3 +39,45 @@ def create_access_token(username: str, role: str) -> str:
     
     encoded_jwt = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+# HTTPBearer extrahiert den Authorization-Header automatisch und parst
+# "Bearer <token>" für uns. Wenn der Header fehlt, gibt FastAPI bei
+# auto_error=True direkt 403 zurueck - daher auto_error=False, damit
+# wir selbst sauber 401 werfen koennen.
+bearer_scheme = HTTPBearer(auto_error=False)
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+) -> dict:
+    """Dependency zum Pruefen von JWT-Tokens.
+    Wird auf Routen angewendet, die nur fuer eingeloggte User zugaenglich sein sollen.
+    Gibt das Token-Payload zurueck (z.B. {'sub': 'admin', 'role': 'admin', 'exp': ...})
+    Bei Fehler: HTTPException 401."""
+    
+    # Kein Header oder falsches Schema
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Kein Authorization-Header",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    token = credentials.credentials
+    
+    # Token dekodieren und Signatur pruefen
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token abgelaufen",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Ungueltiger Token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    return payload
