@@ -248,3 +248,96 @@ curl -X POST http://localhost:8000/upload/ \
 
 - **SecurityEvent**: Ja – `event_type: bad_upload`, `severity: medium`
 - **Hinweis**: Die Datei wird in `uploads/quarantine/` gespeichert und ein Event erscheint unter `/dashboard/events`.
+
+---
+
+## 9. Rules – Liste abrufen
+
+- **Methode/URL**: `GET /rules`
+- **Implementiert in**: `routes/rules.py`
+- **Beispiel-Request**:
+
+```bash
+curl http://localhost:8000/rules
+```
+
+- **Erwartete Response** (`200 OK`):
+
+```json
+[
+  {
+    "id": 1,
+    "name": "SQL Injection",
+    "description": "Regeln fuer sqli",
+    "rules": [
+      {
+        "id": 101,
+        "classId": 1,
+        "name": "union_select",
+        "eventType": "sqli",
+        "target": "request",
+        "regex": "union\\s+select",
+        "severity": "high",
+        "enabled": true,
+        "description": ""
+      }
+    ]
+  }
+]
+```
+
+---
+
+## 10. Rules – Klasse anlegen
+
+- **Methode/URL**: `POST /rules/classes`
+- **Beispiel-Request**:
+
+```bash
+curl -X POST http://localhost:8000/rules/classes \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Custom Rules", "description": "Eigene Testregeln"}'
+```
+
+- **Erwartete Response** (`201 Created`): `RuleClassResponse` mit leerem `rules`-Array
+
+---
+
+## 11. Rules – Regel anlegen / bearbeiten / löschen
+
+```bash
+# Regel anlegen
+curl -X POST http://localhost:8000/rules \
+  -H "Content-Type: application/json" \
+  -d '{
+    "class_id": 1,
+    "name": "test_pattern",
+    "event_type": "sqli",
+    "target": "request",
+    "regex": "or 1=1",
+    "severity": "medium",
+    "enabled": true,
+    "description": "Demo-Regel"
+  }'
+
+# Regel bearbeiten (ID-Schema: classId * 100 + patternIndex + 1)
+curl -X PATCH http://localhost:8000/rules/101 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "test_pattern",
+    "event_type": "sqli",
+    "target": "request",
+    "regex": "or 1=1 --",
+    "severity": "high",
+    "enabled": true,
+    "description": "aktualisiert"
+  }'
+
+# Regel löschen
+curl -X DELETE http://localhost:8000/rules/101
+
+# Klasse löschen
+curl -X DELETE http://localhost:8000/rules/classes/4
+```
+
+- **Hinweis**: Die Modals in `rules.tsx` nutzen diese Endpoints schon. Nur der initiale `GET`-Fetch lädt noch `/test-rules.json`.
