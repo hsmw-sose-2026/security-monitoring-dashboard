@@ -1,6 +1,6 @@
 'use client';
 
-import { IconPlus, IconArrowNarrowLeft, IconChevronDown, IconChevronRight } from '@tabler/icons-react';
+import { IconSquarePlus, IconNewSection, IconEdit, IconTrash ,IconChevronDown, IconChevronRight } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -40,13 +40,13 @@ interface Selection {
 
 function SeverityBadge({ severity }: { severity: Rule['severity'] }) {
     const styles: Record<Rule['severity'], string> = {
-        critical: 'bg-red-900/60 text-red-400',
-        high:     'bg-orange-900/60 text-orange-400',
-        medium:   'bg-yellow-900/60 text-yellow-400',
-        low:      'bg-neutral-700 text-gray-300',
+        critical: 'bg-purple-900/60 text-purple-400',
+        high:     'bg-red-900/60 text-red-400',
+        medium:   'bg-amber-900/60 text-amber-400',
+        low:      'bg-blue-900/60 text-blue-400',
     };
     return (
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${styles[severity]}`}>
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${styles[severity]}`}>
             {severity}
         </span>
     );
@@ -70,7 +70,7 @@ export default function Rules() {
         const load = async () => {
             try {
                 const backendHost = await getBackendHost();
-                const res = await fetch('/test-rules.json');
+                const res = await fetch(`${backendHost}/rules`);
                 if (!res.ok) throw new Error(`Fehler ${res.status}`);
                 const data: RuleClass[] = await res.json();
                 setClasses(data);
@@ -216,15 +216,7 @@ export default function Rules() {
         <div className='w-full min-h-screen bg-neutral-900 flex flex-col pt-24 gap-4 pb-8'>
 
             {/* Header */}
-            <div className='ml-2 mr-2 bg-neutral-800 p-4 rounded-lg'>
-                <div className='flex items-center mb-6'>
-                    <Link
-                        href='/dashboard'
-                        className='flex items-center gap-2 bg-neutral-600 text-white px-4 py-2 rounded-full hover:bg-neutral-700 transition-colors min-w-max'>
-                        <IconArrowNarrowLeft className='size-4' />
-                        <span className='text-sm font-medium'>Zurück zum Dashboard</span>
-                    </Link>
-                </div>
+            <div className='ml-2 mr-2 p-4 rounded-lg'>
                 <h1 className='text-3xl font-bold mb-3 text-white'>Regel Verwaltung</h1>
                 <p className='text-gray-300'>Regeln sind in Klassen gruppiert. Klappen Sie eine Klasse auf, um die zugehörigen Regeln zu sehen.</p>
             </div>
@@ -233,15 +225,15 @@ export default function Rules() {
             <div className='flex gap-2 ml-2 mr-2 flex-wrap items-center'>
                 <button
                     onClick={() => setIsClassModalOpen(true)}
-                    className='flex items-center gap-1 bg-neutral-600 hover:bg-neutral-500 text-white py-1.5 px-3 rounded-full transition-colors text-xs font-medium'>
-                    <IconPlus className='size-3.5' />
+                    className='flex items-center gap-1 bg-neutral-800 text-white hover:bg-lime-900/60 hover:text-lime-400 py-1.5 px-3 rounded-lg transition-colors text-xs font-medium'>
+                    <IconSquarePlus className='size-4' />
                     Neue Klasse
                 </button>
                 <button
                     onClick={() => setIsRuleModalOpen(true)}
                     disabled={classes.length === 0}
-                    className='flex items-center gap-1 bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed text-white py-1.5 px-3 rounded-full transition-colors text-xs font-medium'>
-                    <IconPlus className='size-3.5' />
+                    className='flex items-center gap-1 bg-neutral-800 text-white hover:bg-green-900/60 hover:text-green-400 disabled:opacity-40 disabled:cursor-not-allowed py-1.5 px-3 rounded-lg transition-colors text-xs font-medium'>
+                    <IconNewSection className='size-4' />
                     Neue Regel
                 </button>
 
@@ -250,24 +242,26 @@ export default function Rules() {
                 <button
                     onClick={openEdit}
                     disabled={selection.ruleIds.length !== 1 || selection.classIds.length > 0}
-                    className='bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white py-1.5 px-3 rounded-full transition-colors text-xs font-medium'>
+                    className='flex items-center gap-1 bg-neutral-800 text-white hover:bg-blue-900/60 hover:text-blue-400 disabled:opacity-40 disabled:cursor-not-allowed py-1.5 px-3 rounded-lg transition-colors text-xs font-medium'>
+                    <IconEdit className='size-4' />
                     Bearbeiten
                 </button>
                 <button
                     onClick={handleDelete}
                     disabled={totalSelected === 0}
-                    className='bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white py-1.5 px-3 rounded-full transition-colors text-xs font-medium'>
+                    className='flex items-center gap-1 bg-neutral-800 text-white hover:bg-red-900/60 hover:text-red-400 disabled:opacity-40 disabled:cursor-not-allowed py-1.5 px-3 rounded-lg transition-colors text-xs font-medium'>
+                    <IconTrash className='size-4' />
                     Löschen {totalSelected > 0 && `(${totalSelected})`}
                 </button>
 
                 <div className='w-px h-5 bg-neutral-700 mx-1' />
 
                 <button onClick={selectAll}
-                    className='bg-neutral-700 hover:bg-neutral-600 text-white py-1.5 px-3 rounded-full transition-colors text-xs'>
+                    className='bg-neutral-800 hover:bg-neutral-700 text-white py-1.5 px-3 rounded-lg transition-colors text-xs'>
                     Alle auswählen
                 </button>
                 <button onClick={deselectAll}
-                    className='bg-neutral-700 hover:bg-neutral-600 text-white py-1.5 px-3 rounded-full transition-colors text-xs'>
+                    className='bg-neutral-800 hover:bg-neutral-700 text-white py-1.5 px-3 rounded-lg transition-colors text-xs'>
                     Auswahl aufheben
                 </button>
             </div>

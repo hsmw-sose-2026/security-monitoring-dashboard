@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { IconHome, IconCloud, IconLogout, IconLayoutDashboard, IconMoon, IconSun, IconUpload, IconMail, IconBug } from '@tabler/icons-react';
+import { IconHome, IconCloud, IconLogout, IconSword, IconMoon, IconSun, IconUpload, IconMail, IconBug } from '@tabler/icons-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
@@ -103,7 +103,7 @@ export default function Home() {
                     </Link>
                     {isAdmin && (
                         <Link href='/dashboard' className={clsx('flex items-center gap-2 rounded-2xl px-4 py-4 w-full bg-primary text-foreground hover:bg-primary-hover transition-colors')}>
-                            <IconLayoutDashboard className='size-5' />
+                            <IconSword className='size-5' />
                             <span>Dashboard</span>
                         </Link>
                     )}

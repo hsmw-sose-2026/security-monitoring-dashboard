@@ -3,17 +3,25 @@
 import { useState, useEffect, useRef } from 'react';
 import { IconSearch } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
+import { getBackendHost } from '@/actions/getBackendHost';
+
+type SearchSuggestion = {
+    name: string;
+    description?: string | null;
+    url?: string | null;
+    category?: string | null;
+};
 
 // Einträge aus search_service.py – Vorschläge im Dropdown
-const STATIC_ITEMS = [
-    'Sicheres Passwort-Management',
-    'Was ist eine Firewall?',
-    'SQL Injection verstehen',
-    'Zwei-Faktor-Authentifizierung',
-    'HTTPS vs HTTP',
-    'Phishing erkennen',
-    'VPN im Alltag',
-    'Datenschutz im Unternehmen',
+const STATIC_ITEMS: SearchSuggestion[] = [
+    { name: 'Sicheres Passwort-Management' },
+    { name: 'Was ist eine Firewall?' },
+    { name: 'SQL Injection verstehen' },
+    { name: 'Zwei-Faktor-Authentifizierung' },
+    { name: 'HTTPS vs HTTP' },
+    { name: 'Phishing erkennen' },
+    { name: 'VPN im Alltag' },
+    { name: 'Datenschutz im Unternehmen' },
 ];
 
 interface SearchBarProps {
@@ -24,7 +32,7 @@ interface SearchBarProps {
 export default function SearchBar({ demoValue, onDemoConsumed }: SearchBarProps) {
     const router = useRouter();
     const [query, setQuery] = useState('');
-    const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
     const [open, setOpen] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -41,12 +49,46 @@ export default function SearchBar({ demoValue, onDemoConsumed }: SearchBarProps)
 
     // Vorschläge filtern bei Eingabe
     useEffect(() => {
-        const q = query.trim().toLowerCase();
+        const q = query.trim();
+    
         if (!q) {
             setSuggestions(STATIC_ITEMS);
-        } else {
-            setSuggestions(STATIC_ITEMS.filter(item => item.toLowerCase().includes(q)));
+            return;
         }
+    
+        let cancelled = false;
+    
+        async function loadSuggestions() {
+            try {
+                const backendHost = await getBackendHost();
+                const response = await fetch(`${backendHost}/search?q=${encodeURIComponent(q)}`);
+    
+                if (!response.ok) {
+                    throw new Error('Search request failed');
+                }
+    
+                const data = await response.json();
+                const results = Array.isArray(data) ? data : data.results ?? [];
+    
+                if (!cancelled) {
+                    setSuggestions(results);
+                }
+            } catch {
+                const fallback = STATIC_ITEMS.filter((item) =>
+                    item.name.toLowerCase().includes(q.toLowerCase())
+                );
+    
+                if (!cancelled) {
+                    setSuggestions(fallback);
+                }
+            }
+        }
+    
+        loadSuggestions();
+    
+        return () => {
+            cancelled = true;
+        };
     }, [query]);
 
     // Dropdown schließen bei Klick außerhalb
@@ -60,7 +102,8 @@ export default function SearchBar({ demoValue, onDemoConsumed }: SearchBarProps)
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
-    const navigate = (term: string) => {
+    const navigate = (item: SearchSuggestion | string) => {
+        const term = typeof item === 'string' ? item : item.name;
         setOpen(false);
         setQuery(term);
         router.push(`/search?q=${encodeURIComponent(term)}`);
@@ -95,14 +138,19 @@ export default function SearchBar({ demoValue, onDemoConsumed }: SearchBarProps)
                         <li className='px-4 py-3 text-sm text-gray-400 italic'>Keine Vorschläge gefunden.</li>
                     ) : (
                         suggestions.map(item => (
-                            <li key={item}>
+                            <li key={item.name}>
                                 <button
                                     type='button'
                                     onMouseDown={() => navigate(item)}
                                     className='w-full text-left px-4 py-2.5 text-sm hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2'
                                 >
                                     <IconSearch className='size-3.5 text-gray-300 shrink-0' />
-                                    {item}
+                                    <div className='flex flex-col'>
+                                        <span>{item.name}</span>
+                                        {item.category && (
+                                            <span className='text-xs text-gray-400'>{item.category}</span>
+                                        )}
+                                    </div>
                                 </button>
                             </li>
                         ))
