@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { IconCloud, IconLogout, IconMoon, IconSun, IconHome, IconUpload, IconMail } from '@tabler/icons-react';
+import { IconCloud, IconLogout, IconMoon, IconSun, IconHome, IconUpload, IconMail, IconBug, IconSword } from '@tabler/icons-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -9,6 +9,13 @@ import clsx from 'clsx';
 import { getBackendHost } from '@/actions/getBackendHost';
 import SearchBar from '@/components/SearchBar';
 import { useDarkMode } from '@/app/hooks/useDarkMode';
+
+const XSS_DEMO = {
+    name: '<img src=x onerror=alert("XSS")>',
+    username: 'hacker',
+    email: 'xss@attack.demo',
+    message: '<script>document.cookie</script>',
+};
 
 export default function Contact() {
     const router = useRouter();
@@ -24,12 +31,22 @@ export default function Contact() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-    const role = localStorage.getItem("role");
+        const role = localStorage.getItem("role");
+        if (!role) {
+            router.replace("/login");
+            return;
+        }
+        setIsAdmin(role === "admin");
+        setIsLoading(false);
+    }, [router]);
 
-    if (role !== "user" && role !== "admin") {
-        router.replace("/login");
+    function handleXssDemo() {
+        setName(XSS_DEMO.name);
+        setUsername(XSS_DEMO.username);
+        setEmail(XSS_DEMO.email);
+        setMessage(XSS_DEMO.message);
+        setError(null);
     }
-}, [router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -109,6 +126,7 @@ export default function Contact() {
                     </Link>
                     {isAdmin && (
                         <Link href='/dashboard' className={clsx('flex items-center gap-2 rounded-2xl px-4 py-4 w-full bg-primary text-foreground hover:bg-primary-hover transition-colors')}>
+                            <IconSword className='size-5' />
                             <span>Dashboard</span>
                         </Link>
                     )}
@@ -135,6 +153,18 @@ export default function Contact() {
                                 className='bg-primary-2 text-white rounded px-24 py-2 w-full hover:bg-primary-3-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors'>
                                 {isLoading ? 'Wird gesendet…' : 'Senden'}
                             </button>
+
+                            {/* Demo-Angriff */}
+                            <div className='w-full border-t border-border pt-4 mt-2'>
+                                <p className='text-xs text-foreground-muted mb-2 text-center'>Demo-Angriff</p>
+                                <button
+                                    type='button'
+                                    onClick={handleXssDemo}
+                                    className='flex items-center justify-center gap-2 w-full border border-red-500/40 text-red-400 rounded px-4 py-2 text-sm hover:bg-red-500/10 transition-colors'>
+                                    <IconBug className='size-4' />
+                                    XSS-Angriff simulieren
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>

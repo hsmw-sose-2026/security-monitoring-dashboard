@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { IconCloud, IconLogout, IconX, IconUpload, IconMoon, IconSun, IconHome, IconMail, IconBug } from '@tabler/icons-react';
+import { IconCloud, IconLogout, IconX, IconUpload, IconMoon, IconSun, IconHome, IconMail, IconBug, IconSword } from '@tabler/icons-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
@@ -33,11 +33,23 @@ function formatSize(bytes: number): string {
 export default function Upload() {
     const router = useRouter();
     const pathname = usePathname();
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const { darkMode, toggleDarkMode } = useDarkMode();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
     const [uploadStatus, setUploadStatus] = useState<{ message: string; type: 'success' | 'error' | '' }>({ message: '', type: '' });
     const [uploading, setUploading] = useState(false);
+
+    useEffect(() => {
+        const role = localStorage.getItem("role");
+        if (!role) {
+            router.replace("/login");
+            return;
+        }
+        setIsAdmin(role === "admin");
+        setIsLoading(false);
+    }, [router]);
 
     const addFiles = useCallback((files: File[]) => {
         setPendingFiles(prev => {
@@ -91,7 +103,12 @@ export default function Upload() {
             const rejected = responses.filter(r => r.status === 'rejected');
             const parts: string[] = [];
             if (uploaded.length > 0) parts.push(`${uploaded.length} hochgeladen: ${uploaded.map(r => r.original_filename).join(', ')}`);
-            if (rejected.length > 0) parts.push(`Abgelehnt – ${rejected.map(r => `${r.original_filename}: ${r.reason ?? 'Dateiendung nicht erlaubt'}`).join('; ')}`);
+            if (rejected.length > 0) parts.push(
+                rejected.map(r => {
+                    const reason = r.reason === 'extension_blocked' ? 'extension_blocked' : (r.reason ?? 'unbekannt');
+                    return `${r.original_filename}: status: rejected | reason: ${reason}`;
+                }).join(' | ')
+            );
             if (errors.length > 0) parts.push(errors.join('; '));
             if (uploaded.length > 0 && rejected.length === 0 && errors.length === 0) {
                 setUploadStatus({ message: parts.join(' | '), type: 'success' });
@@ -104,13 +121,6 @@ export default function Upload() {
             }
         } finally { setUploading(false); }
     };
-
-    useEffect(() => {
-        const role = localStorage.getItem("role");
-        if (role !== "user" && role !== "admin") {
-            router.replace("/login");
-        }
-    }, [router]);
 
     return (
         <>
@@ -159,6 +169,12 @@ export default function Upload() {
                         <IconMail className='size-5' />
                         <span>Kontakt</span>
                     </Link>
+                    {isAdmin && (
+                        <Link href='/dashboard' className={clsx('flex items-center gap-2 rounded-2xl px-4 py-4 w-full bg-primary text-foreground hover:bg-primary-hover transition-colors')}>
+                            <IconSword className='size-5' />
+                            <span>Dashboard</span>
+                        </Link>
+                    )}
                     <Link href='/impressum' className={clsx('gap-2 fixed bottom-2 rounded-2xl px-4 py-4 text-primary-2 hover:bg-primary-hover transition-colors')}>
                         <span>Impressum</span>
                     </Link>

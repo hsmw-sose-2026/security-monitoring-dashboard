@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { IconCloud, IconLogout, IconLayoutDashboard, IconMoon, IconSun, IconHome, IconUpload, IconMail } from '@tabler/icons-react';
+import { IconCloud, IconLogout, IconSword, IconMoon, IconSun, IconHome, IconUpload, IconMail } from '@tabler/icons-react';
 import Link from 'next/link';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import clsx from 'clsx';
@@ -19,14 +19,17 @@ function SearchContent() {
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
-    const role = localStorage.getItem("role");
-
-    if (role !== "user" && role !== "admin") {
-        router.replace("/login");
-    }
+        const role = localStorage.getItem("role");
+        if (!role) {
+            router.replace("/login");
+            return;
+        }
+        setIsAdmin(role === "admin");
+        setIsLoading(false);
     }, [router]);
 
     useEffect(() => {
@@ -96,7 +99,7 @@ function SearchContent() {
                     </Link>
                     {isAdmin && (
                         <Link href='/dashboard' className={clsx('flex items-center gap-2 rounded-2xl px-4 py-4 w-full bg-primary text-foreground hover:bg-primary-hover transition-colors')}>
-                            <IconLayoutDashboard className='size-4' />
+                            <IconSword className='size-5' />
                             <span>Dashboard</span>
                         </Link>
                     )}
