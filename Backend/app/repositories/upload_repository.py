@@ -12,6 +12,9 @@ def save_upload_metadata(
     stored_filename: str,
     file_extension: str,
     client_ip: str | None = None,
+    status: str = "uploaded",
+    content_type: str | None = None,
+    file_size: int | None = None,
 ) -> UploadedFile:
 
     # Ein neues UploadedFile-Objekt wird erstellt
@@ -20,6 +23,9 @@ def save_upload_metadata(
         stored_filename=stored_filename,
         file_extension=file_extension,
         client_ip=client_ip,
+        status=status,
+        content_type=content_type,
+        file_size=file_size,
     )
 
     # das neue Objekt wird der Session hinzugefuegt und in die Datenbank geschrieben
@@ -37,3 +43,17 @@ def count_uploads_today(session: Session) -> int:
     start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
     statement = select(UploadedFile).where(UploadedFile.uploaded_at >= start_of_day)
     return len(session.exec(statement).all())
+
+
+def list_uploads(
+    session: Session,
+    limit: int = 20,
+    offset: int = 0,
+) -> list[UploadedFile]:
+    statement = (
+        select(UploadedFile)
+        .order_by(UploadedFile.uploaded_at.desc())
+        .offset(offset)
+        .limit(limit)
+    )
+    return session.exec(statement).all()

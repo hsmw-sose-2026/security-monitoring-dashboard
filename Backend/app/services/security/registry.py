@@ -1,27 +1,16 @@
 """Run all configured security detectors for a request."""
 
-# TODO(Jannis): Registry auf Spezialdetektoren reduzieren.
-# SQLi, XSS und Path Traversal laufen kuenftig NICHT mehr ueber diese Datei,
-# sondern ueber JSON-Regeln in services/security/rules/*.json:
-# rule_loader -> pattern_detector -> middleware -> event_logger.
-#
-# In registry.py bleiben nur Detektoren mit eigener Logik, die nicht nur Regex
-# ueber Request-Text sind, z.B.:
-# - rate_limit: braucht Zaehler pro source_ip und Zeitfenster
-# - bad_upload: kommt wieder hier rein, wenn Upload-Dateiname/Extension geprueft wird
-#
-# Also:
-# 1. SQL_INJECTION_PATTERNS und detect_sql_injection entfernen.
-# 2. In run_all_detectors die Eintraege sql_injection, xss und path_traversal entfernen.
-# 3. Die Imports/Aufrufe von xss.py und path_traversal.py entfernen.
-# 4. rate_limit funktionsfaehig mit context.source_ip anbinden.
-# 5. bad_upload auch hier lösen
-
 import re
 from typing import Any
 from urllib.parse import unquote
 
+import json
+from pathlib import Path
+
+UPLOAD_RULE_PATH = Path(__file__).parent / "rules" / "upload_extensions.json"
+
 print("[REGISTRY] geladen")
+
 
 # SQL Injection Patterns
 SQL_INJECTION_PATTERNS = [
@@ -41,6 +30,32 @@ def detect_sql_injection(text: str) -> str | None:
         if match:
             return match.group(0)
     return None
+
+
+def detect_bad_upload(filename: str) -> dict | None:
+    extension = Path(filename).suffix.lower()
+
+    if not extension:
+        return None
+
+    with UPLOAD_RULE_PATH.open(encoding="utf-8") as file:
+        rules = json.load(file)
+
+    if not rules.get("enabled", True):
+        return None
+
+    blocked_extensions = rules.get("blocked_extensions", [])
+
+    if extension not in blocked_extensions:
+        return None
+
+    return {
+        "event_type": rules.get("event_type", "bad_upload"),
+        "severity": rules.get("severity", "medium"),
+        "blocked_extension": extension,
+        "detail": f"Blockierte Dateiendung: {extension}",
+        "reason": "extension_blocked",
+    }
 
 
 def run_all_detectors(context):
