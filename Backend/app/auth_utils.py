@@ -81,3 +81,15 @@ def get_current_user(
         )
     
     return payload
+
+def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
+    """Dependency wie get_current_user, prueft zusaetzlich Admin-Rolle.
+    Wird auf Routen angewendet, die nur Admins zugaenglich sein sollen.
+    Bei fehlender Admin-Rolle: HTTPException 403."""
+    
+    if current_user.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin-Rechte erforderlich",
+        )
+    return current_user

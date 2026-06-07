@@ -10,13 +10,20 @@ import re
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, status
+
+from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, Field
 
 from app.services.security.rule_loader import reload_rules
+from app.auth_utils import require_admin
 
-
-router = APIRouter(prefix="/rules", tags=["rules"])
+# Alle Endpoints in diesem Router sind durch require_admin geschuetzt.
+# Wer einen oeffentlichen Endpoint braucht, muss einen separaten Router anlegen.
+router = APIRouter(
+    prefix="/rules", 
+    tags=["rules"],
+    dependencies=[Depends(require_admin)],
+)
 
 RULES_DIR = Path(__file__).resolve().parents[1] / "services" / "security" / "rules"
 DISPLAY_NAMES = {
