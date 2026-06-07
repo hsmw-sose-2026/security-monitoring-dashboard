@@ -11,15 +11,15 @@ from app.repositories.event_repository import list_recent_events
 from app.repositories.alert_repository import list_recent_alerts
 from app.services.dashboard_service import build_dashboard_stats
 from app.services.detection import group_events_into_attacks
-from app.auth_utils import get_current_user
+from app.auth_utils import require_admin
 from app.schemas.dashboard import StatsResponse, EventResponse, AlertResponse, AttackResponse
 
-# Alle Endpoints in diesem Router sind durch get_current_user geschuetzt.
+# Alle Endpoints in diesem Router sind durch require_admin geschuetzt.
 # Wer einen oeffentlichen Endpoint braucht, muss einen separaten Router anlegen.
 router = APIRouter(
     prefix="/dashboard",
     tags=["dashboard"],
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_admin)],  # Nur Admins duerfen aufs Dashboard
 )
 
 @router.get("/events", response_model=list[EventResponse])

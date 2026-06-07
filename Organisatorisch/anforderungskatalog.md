@@ -1,212 +1,306 @@
-## 1. Projektbeschreibung
+# Anforderungskatalog
 
-Wir bauen einen Prototypen für ein Security-Monitoring-System. Das System besteht aus einer einfachen Firmenwebseite (als Angriffsflche) und einem Dashboard das sicherheitsrelevante Ereignisse anzeigt.
+Stand: 07.06.2026
 
-**Was das System kann:**
-- Sicherheitsrelevante Ereignisse auf der Firmen-Webseite automatisch erkennen und loggen
-- Diese Events in einem Dashboard anzeigen (Tabelle, Charts, Alerts)
-- Einem Admin helfen, Angriffe und Auffälligkeiten schnell zu erkennen
-(Eventuell noch Webhook implementierungen, können wir aber weg lassen)
+## 1. Projektziel
 
-**Was das System NICHT kann / nicht der Scope ist:**
-- Angriffe aktiv blockieren (wir erkennen und loggen sie nur, wir blocken sie nicht)
-- Schutz vor allen denkbaren Angriffsarten (wir beschränken uns auf die unten definierte Liste)
-- Skalierbarkeit
+Ziel des Projekts ist ein Prototyp fuer ein Security-Monitoring-System. Das System soll sicherheitsrelevante Ereignisse einer einfachen Webanwendung erfassen, analysieren, speichern und in einem Dashboard visualisieren.
 
----
+Die Demo-Kette lautet:
 
-## 2. Die Webanwendung (Firmenwebseite)
+> Angriff oder auffaellige Aktion auf der Webanwendung -> Erkennung im Backend -> Speicherung als SecurityEvent/Alert -> Darstellung im Dashboard.
 
-Die Firmenwebseite ist eine einfache Demo-Seite die als Angriffsfläche dient. Sie hat folgende Seiten:
+Der Prototyp ist bewusst kein produktives Security-Produkt, sondern eine nachvollziehbare Umsetzung der wichtigsten Konzepte: Logging, Detection, Correlation, Dashboard und Evaluation.
 
-### 2.1 Startseite
-- Zeigt eine einfache Willkommensseite mit Navigation
-- Links zu Login, Kontakt, Upload, Suche
-- Keine besondere Logik, rein informativ
-- Wir könnten auch Templates verwenden die eine offene Lizenz besitzen
+## 2. Bezug zur Originalaufgabe
 
-### 2.2 Login-Seite
-- Formular mit Benutzername und Passwort
-- Einloggen mit vordefinierten Test-Accounts (werden in der Datenbank angelegt)
-- Bei falschem Passwort: Fehlermeldung "Login fehlgeschlagen"
-- Bei richtigem Login: Weiterleitung zum Dashboard
-- **Kein** "Passwort vergessen", **keine** Registrierung, **kein** OAuth
+Die Originalaufgabe fordert:
 
-### 2.3 Kontaktformular
-- Felder: Name, E-Mail, Nachricht
-- Beim Absenden wird der Inhalt gespeichert (in der Datenbank, nicht per E-Mail verschickt)
-- Erfolgsmeldung nach dem Absenden
-- **Keine** echte E-Mail-Versendung
+- Aufbau oder Erweiterung einer einfachen Webanwendung mit Logging-Komponente
+- strukturierte Erfassung sicherheitsrelevanter Ereignisse
+- Auswertung ueber definierte Regeln
+- Visualisierung der Ergebnisse in einer Oberflaeche fuer Administratoren
+- Erkennung typischer Vorfaelle wie fehlgeschlagene Logins, verdaechtige Request-Muster, Rechteverletzungen oder ungewoehnliche Zugriffe
+- optional Benachrichtigungen oder einfache Anomalie-Erkennung
 
-### 2.4 Datei-Upload
-- Ein Formular mit einer Datei-Auswahl und einem Upload-Button
-- Akzeptiert Dateien und speichert sie in einem Upload-Ordner
-- Zeigt den Dateinamen nach dem Upload an
-- **Keine** Vorschau, **kein** Dateimanager, **keine** Dateiliste
+Der aktuelle Prototyp erfuellt die Kernanforderungen. Rechteverletzungen werden nur teilweise abgedeckt: Das Dashboard ist per JWT geschuetzt, aber es gibt keinen eigenen Event-Typ `permission_violation`.
 
-### 2.5 Suchfeld
-- Ein Textfeld mit einem Such-Button
-- Sucht in einer kleinen Liste von vordefinierten Einträgen (z.B. Blogposts oder Produkte)
-- Zeigt Ergebnisse als einfache Liste an
-- **Keine** Volltextsuche, **keine** Filter, **keine** Sortierung
+## 3. Systemueberblick
 
----
+Das System besteht aus drei Hauptteilen:
 
-## 3. Security Monitoring (Erkennung)
+| Komponente | Aufgabe |
+| --- | --- |
+| Firmenwebseite | Demo-Webanwendung und Angriffsoberflaeche |
+| Backend | Logging, Detection, Speicherung, Correlation, API |
+| Dashboard | Visualisierung von Events, Alerts, Attacks, Stats und Regeln |
 
-Die Middleware analysiert jeden eingehenden Request und prüft ihn auf verdächtige Muster. Folgende Angriffstypen werden erkannt:
+## 4. Webanwendung als Angriffsoberflaeche
 
-### 3.1 Brute-Force-Erkennung
-- **Was:** Zu viele fehlgeschlagene Login-Versuche von einer IP-Adresse
-- **Schwellwert:** Mehr als 5 fehlgeschlagene Logins innerhalb von 1 Minute von der gleichen IP
-- **Severity:** Critical
-- **Gespeichert wird:** IP-Adresse, Zeitpunkt, Anzahl Versuche
+### 4.1 Startseite
 
-### 3.2 SQL-Injection-Erkennung
-- **Was:** Verdächtige SQL-Fragmente in Eingabefeldern (Login, Suche, Kontakt)
-- **Erkannte Muster:**
-  - `' OR 1=1` und Varianten
-  - `UNION SELECT`
-  - `DROP TABLE`
-  - `; DELETE FROM`
-  - `' OR '1'='1`
-- **Severity:** High
-- **Gespeichert wird:** IP-Adresse, Zeitpunkt, betroffenes Feld, erkanntes Muster
+- Zeigt eine einfache Firmenwebseite mit Navigation.
+- Enthaelt die Suchleiste und Demo-Angriffsbutton fuer XSS.
+- Leitet angemeldete Admins zum Dashboard weiter.
 
-### 3.3 XSS-Erkennung (Cross-Site Scripting)
-- **Was:** Script-Tags oder JavaScript-Code in Eingabefeldern
-- **Erkannte Muster:**
-  - `<script>` Tags
-  - `javascript:` in Eingaben
-  - Event-Handler wie `onload=`, `onerror=`, `onclick=`
-- **Severity:** Medium
-- **Gespeichert wird:** IP-Adresse, Zeitpunkt, betroffenes Feld, erkanntes Muster
+### 4.2 Login
 
-### 3.4 Path-Traversal-Erkennung
-- **Was:** Versuche auf Dateien außerhalb des erlaubten Verzeichnisses zuzugreifen
-- **Erkannte Muster:**
-  - `../` in URLs oder Dateinamen
-  - `/etc/passwd`, `/etc/shadow` in Anfragen
-- **Severity:** High
-- **Gespeichert wird:** IP-Adresse, Zeitpunkt, angefragter Pfad
+- Test-Login mit festen Accounts.
+- Erfolgreicher Login erzeugt ein JWT.
+- Admins koennen danach das Dashboard oeffnen.
+- Fehlgeschlagene Login-Versuche erzeugen `failed_login` Events.
+- Mehrere fehlgeschlagene Logins koennen einen `brute_force` Alert ausloesen.
 
-### 3.5 Datei-Upload-Prüfung
-- **Was:** Upload von potenziell gefährlichen Dateitypen
-- **Blockierte Endungen:** `.exe`, `.php`, `.sh`, `.bat`, `.cmd`, `.js`, `.py`, `.pl`, `.rb`, `.ps1`, `.psm1`, `.psd1`, `.vbs`, `.vbe`, `.wsf`, `.wsh`, `.msi`, `.msp`, `.jar`, `.jsp`, `.asp`, `.aspx`, `.cgi`, `.war`, `.com`, `.scr`, `.pif`, `.hta`, `.inf`, `.reg`, `.dll`, `.so`, `.dylib`, `.elf`, `.bin`, `.run`, `.AppImage`, `.deb`, `.rpm`
-- **Erlaubte Endungen:** `.pdf`, `.png`, `.jpg`, `.jpeg`, `.gif`, `.txt`, `.doc`, `.docx`, `.csv`, `.xlsx`
-- **Severity:** Medium
-- **Gespeichert wird:** IP-Adresse, Zeitpunkt, Dateiname, Dateityp
+### 4.3 Kontakt
 
-### 3.6 Rate-Limiting
-- **Was:** Ungewöhnlich viele Requests von einer einzelnen IP in kurzer Zeit
-- **Schwellwert:** Mehr als 50 Requests innerhalb von 1 Minute von der gleichen IP
-- **Severity:** Medium
-- **Gespeichert wird:** IP-Adresse, Zeitpunkt, Anzahl Requests
+- Kontaktformular mit Name, E-Mail und Nachricht.
+- Nachrichten werden im Backend gespeichert.
+- XSS- oder SQLi-Payloads in Feldern werden durch die Security-Middleware erkannt und geloggt.
 
----
+### 4.4 Upload
 
-## 4. Security Dashboard
+- Datei-Upload fuer Demo-Dateien.
+- Upload-Metadaten werden gespeichert.
+- Gefaehrliche Dateitypen werden als `bad_upload` erkannt.
+- Abgelehnte Dateien erhalten den Status `rejected` und werden in einen Quarantaene-Ordner geschrieben.
 
-Das Dashboard ist ein geschützter Bereich der nur nach Login sichtbar ist. Es hat folgende Ansichten:
+### 4.5 Suche
 
-### 4.1 Übersichtsseite
-- Anzahl Events heute (als Zahl in einer Karte)
-- Anzahl kritischer Alerts (als Zahl in einer Karte)
-- Balkendiagramm: Events pro Stunde (letzte 24 Stunden)
-- Tortendiagramm: Verteilung nach Angriffstyp
+- Suche gegen vordefinierte Inhalte.
+- Suchergebnisse enthalten Name, Beschreibung, URL und Kategorie.
+- Suchparameter werden durch die Security-Middleware auf verdaechtige Muster geprueft.
 
--> Gibt's ja viele React Templates etc. die frei verfügbar sind
+## 5. Security-Erkennung
 
-### 4.2 Event-Log
-- Tabelle mit allen Security-Events
-- Spalten: Zeitpunkt, Typ (SQL Injection, XSS, etc.), IP-Adresse, Pfad, Severity
-- Sortiert nach Zeitpunkt (neueste oben)
-- **Kein** Filtern, **kein** Suchen, **keine** Pagination (wir zeigen einfach die letzten 100)
+### 5.1 Logging und RequestContext
 
-### 4.3 Alert-Ansicht
-- Liste der ausgelösten Alerts (z.B. "Brute Force von 192.168.1.5 erkannt")
-- Spalten: Zeitpunkt, Alert-Typ, Beschreibung, Severity
-- Sortiert nach Zeitpunkt (neueste oben)
-- **Keine** Benachrichtigungen, **kein** "Alert bestätigen/schließen"
+Jeder relevante Request wird in einen normalisierten `RequestContext` ueberfuehrt. Ausgewertet werden unter anderem:
 
----
+- Source-IP
+- HTTP-Methode
+- Pfad
+- vollstaendige URL
+- Query-Parameter
+- Header
+- Body
+- Form-/JSON-Felder
 
-## 5. Datenmodell
+Zusätzlich erzeugt das Backend pro Request eine Request-ID, die in Logs und Response-Headern nachvollziehbar ist.
 
-### Security Event
+### 5.2 Pattern-basierte Erkennung
+
+Die Pattern-Erkennung nutzt JSON-Regeln. Die Regeln werden ueber einen Rule-Loader geladen und durch den Pattern-Detector gegen Query, Body, URL und Form-Felder geprueft.
+
+Erkannte Pattern:
+
+| Angriffstyp | Event-Typ | Severity | Beispiel |
+| --- | --- | --- | --- |
+| SQL Injection | `sql_injection` | high | `' OR 1=1 --` |
+| XSS | `xss` | medium | `<script>alert(1)</script>` |
+| Path Traversal | `path_traversal` | high | `../../etc/passwd` |
+
+### 5.3 Spezialdetektoren
+
+| Detektor | Event-Typ | Beschreibung |
+| --- | --- | --- |
+| Bad Upload | `bad_upload` | erkennt gefaehrliche Dateiendungen |
+| Rate Limit | `rate_limit` | erkennt viele Requests pro IP in kurzem Zeitraum |
+
+### 5.4 Correlation und Alerts
+
+Einzelne Events werden nach dem Speichern durch Correlation-Regeln ausgewertet.
+
+| Alert | Ausloeser | Severity |
+| --- | --- | --- |
+| Brute Force | mindestens 5 fehlgeschlagene Logins in 60 Sekunden von gleicher IP | critical |
+| Multi-Vector | mehrere verschiedene Event-Typen einer IP in kurzem Zeitraum | high |
+
+Duplicate-Alerts werden in einem kurzen Zeitfenster vermieden, damit das Dashboard nicht mit identischen Alerts geflutet wird.
+
+### 5.5 Rules-Management
+
+Das Dashboard enthaelt eine Rules-Verwaltung. Regeln koennen ueber das Frontend und die Backend-API verwaltet werden.
+
+Anforderungen:
+
+- Regeln anzeigen
+- Regelklassen anzeigen
+- Regelklasse anlegen
+- Regel anlegen
+- Regel bearbeiten
+- Regel loeschen
+- Regelklasse loeschen
+- neue Regeln ohne Backend-Neustart aktivieren
+
+Status: umgesetzt und per Frontend-E2E-Test geprueft.
+
+## 6. Dashboard
+
+Das Dashboard ist ein geschuetzter Bereich fuer Admins.
+
+### 6.1 Dashboard-Uebersicht
+
+- Zeigt gruppierte Angriffe.
+- Erlaubt Filterung nach Zeitraum, Klassifikation, IP und Severity.
+- Zeigt Detailinformationen zu Angriffen.
+
+### 6.2 Events
+
+- Zeigt SecurityEvents als Tabelle.
+- Neueste Events werden zuerst angezeigt.
+- `limit` und `offset` unterstuetzen Pagination.
+
+### 6.3 Alerts
+
+- Zeigt erzeugte Alerts.
+- Neueste Alerts werden zuerst angezeigt.
+- `limit` und `offset` unterstuetzen Pagination.
+
+### 6.4 Stats
+
+- KPI-Karten fuer Events und Alerts.
+- Chart fuer Events pro Stunde.
+- Chart fuer Verteilung nach Event-Typ.
+
+### 6.5 Rules
+
+- Zeigt aktuelle Regeln aus dem Backend.
+- Erlaubt Erstellung, Bearbeitung und Loeschung von Regeln.
+- Neue Regeln greifen sofort in der Detection.
+
+## 7. API-Anforderungen
+
+Wichtige API-Bereiche:
+
+| Bereich | Beispiele |
+| --- | --- |
+| Auth | `POST /auth/login` |
+| Dashboard | `GET /dashboard/events`, `GET /dashboard/alerts`, `GET /dashboard/attacks`, `GET /dashboard/stats` |
+| Contact | `POST /contact`, `GET /contact` |
+| Search | `GET /search?q=...` |
+| Upload | `POST /upload`, `GET /upload` |
+| Rules | `GET /rules`, `POST /rules`, `PATCH /rules/{id}`, `DELETE /rules/{id}` |
+
+Fehlerantworten sollen in einem einfachen einheitlichen Format ausgegeben werden:
+
+```json
+{
+  "detail": "Invalid request",
+  "error_code": "validation_error"
+}
+```
+
+## 8. Datenmodell
+
+### 8.1 SecurityEvent
+
 | Feld | Typ | Beschreibung |
-|------|-----|-------------|
-| id | Integer | Eindeutige ID (automatisch) |
-| timestamp | DateTime | Zeitpunkt des Events |
-| event_type | String | Art des Events (sql_injection, xss, brute_force, path_traversal, bad_upload, rate_limit) |
-| source_ip | String | IP-Adresse des Absenders |
-| path | String | Angefragter URL-Pfad |
-| detail | String | Zusätzliche Info (z.B. erkanntes Muster) |
-| severity | String | low, medium, high, critical |
+| --- | --- | --- |
+| `id` | Integer | eindeutige ID |
+| `timestamp` | DateTime | Zeitpunkt des Events |
+| `event_type` | String | Art des Events |
+| `source_ip` | String | IP-Adresse |
+| `path` | String | betroffener Pfad |
+| `detail` | String | Beschreibung / erkanntes Muster |
+| `severity` | String | `low`, `medium`, `high`, `critical` |
 
-### Alert
+### 8.2 Alert
+
 | Feld | Typ | Beschreibung |
-|------|-----|-------------|
-| id | Integer | Eindeutige ID (automatisch) |
-| timestamp | DateTime | Zeitpunkt des Alerts |
-| alert_type | String | Art des Alerts (brute_force, rate_limit) |
-| source_ip | String | IP-Adresse |
-| message | String | Beschreibung was passiert ist |
-| severity | String | low, medium, high, critical |
+| --- | --- | --- |
+| `id` | Integer | eindeutige ID |
+| `timestamp` | DateTime | Zeitpunkt des Alerts |
+| `alert_type` | String | Art des Alerts |
+| `source_ip` | String | IP-Adresse |
+| `message` | String | Beschreibung |
+| `severity` | String | `low`, `medium`, `high`, `critical` |
 
-### User (für Login)
+### 8.3 User
+
 | Feld | Typ | Beschreibung |
-|------|-----|-------------|
-| id | Integer | Eindeutige ID (automatisch) |
-| username | String | Benutzername |
-| hashed_password | String | Gehashtes Passwort |
-| role | String | user oder admin |
+| --- | --- | --- |
+| `id` | Integer | eindeutige ID |
+| `username` | String | Benutzername |
+| `hashed_password` | String | gehashtes Passwort |
+| `role` | String | Rolle, z.B. `admin` oder `user` |
 
----
+### 8.4 ContactMessage
 
-## 6. Tech-Stack
+| Feld | Typ | Beschreibung |
+| --- | --- | --- |
+| `id` | Integer | eindeutige ID |
+| `name` | String | Name |
+| `email` | String | E-Mail-Adresse |
+| `message` | String | Nachricht |
+| `submitted_at` | DateTime | Zeitpunkt |
 
-- **Frontend:** Next.js + React + TypeScript + Tailwind CSS
-- **Backend:** Python + FastAPI
-- **Datenbank:** SQLite (über SQLModel)
-- **Versionsverwaltung:** Git + GitHub
+### 8.5 UploadedFile
 
----
+| Feld | Typ | Beschreibung |
+| --- | --- | --- |
+| `id` | Integer | eindeutige ID |
+| `original_filename` | String | urspruenglicher Dateiname |
+| `stored_filename` | String | gespeicherter Dateiname |
+| `file_extension` | String | Dateiendung |
+| `uploaded_at` | DateTime | Upload-Zeitpunkt |
+| `client_ip` | String | Client-IP |
+| `status` | String | `uploaded` oder `rejected` |
+| `content_type` | String | MIME-Type |
+| `file_size` | Integer | Dateigroesse |
 
-## 7. Was explizit NICHT im Scope ist
+## 9. Nicht-funktionale Anforderungen
 
-Damit es keine Missverständnisse gibt, hier nochmal zusammengefasst was wir bewusst NICHT bauen:
+| Anforderung | Umsetzung |
+| --- | --- |
+| Modularitaet | Backend ist in Routes, Schemas, Repositories, Services, Middleware und Security-Komponenten aufgeteilt |
+| Nachvollziehbarkeit | Events, Alerts, Request-ID, API-Doku und Testbeispiele |
+| Bedienbarkeit | Dashboard und Demo-Buttons fuer typische Angriffe |
+| Lokale Ausfuehrbarkeit | Backend und Frontend koennen lokal gestartet werden |
+| Versionierung | Git/GitHub mit Branches und nachvollziehbarer Commit-History |
 
-- Keine Benutzerregistrierung (Test-Accounts werden fest angelegt)
-- Keine Passwort-vergessen-Funktion
-- Keine E-Mail-Versendung
-- Keine Echtzeit-Push-Benachrichtigungen
-- Kein aktives Blockieren von Angriffen (nur Erkennung und Logging)
-- Clientseitiges verhindern von Angriffen (Verarbeitung von Eingaben) → Alles wird primitiv ans Backend weitergegeben
-- Keine mobile-optimierte Ansicht
-- Keine Pagination, Filterung oder Suche im Event-Log
-- Keine Mehrsprachigkeit
-- Keine automatische Anomalie-Erkennung mit Machine Learning
-- Keine HTTPS/TLS-Konfiguration (läuft lokal über HTTP)
-- Kein Deployment auf einem Server (läuft lokal)
+## 10. Bewusst nicht im Scope
 
----
+- Kein produktiver Schutz vor allen Angriffen.
+- Kein aktives Blockieren aller Requests; Fokus liegt auf Erkennung, Logging und Visualisierung.
+- Keine Benutzerregistrierung.
+- Keine E-Mail-Versendung.
+- Keine externen Benachrichtigungen.
+- Keine Machine-Learning-Anomalie-Erkennung.
+- Keine produktive Skalierung.
+- Keine HTTPS-/Deployment-Konfiguration.
+- Keine vollstaendige mobile Optimierung.
 
-## 8. Abnahmekriterien
+## 11. Abnahmekriterien
 
-So kann man prüfen ob das Projekt fertig ist:
+Der Prototyp gilt als abnahmefaehig, wenn folgende Punkte gezeigt werden koennen:
 
-1. Die Firmenwebseite hat eine Startseite, Login, Kontaktformular, Datei-Upload und Suchfeld
-2. Man kann sich mit einem Test-Account einloggen
-3. Wenn man SQL-Injection im Login-Feld eingibt (z.B. `' OR 1=1 --`) wird ein Event geloggt
-4. Wenn man ein `<script>` Tag ins Kontaktformular eingibt wird ein Event geloggt
-5. Wenn man 5x das falsche Passwort eingibt wird ein Brute-Force-Alert erzeugt
-6. Wenn man eine .exe Datei hochladen will wird ein Event geloggt
-7. Wenn man `../etc/passwd` in die URL eingibt wird ein Event geloggt
-8. Das Dashboard zeigt die Events als Tabelle an
-9. Das Dashboard zeigt ein Balkendiagramm mit Events pro Stunde an
-10. Das Dashboard zeigt die Verteilung der Angriffstypen als Tortendiagramm an
-11. Das Dashboard zeigt ausgelöste Alerts an
-12. Der Code liegt in einem GitHub-Repository mit nachvollziehbarer Commit-History
+1. Die Firmenwebseite besitzt Startseite, Login, Kontaktformular, Upload und Suche.
+2. Login mit Test-Account funktioniert.
+3. Dashboard ist nur mit Admin-Token erreichbar.
+4. SQL-Injection-Payload erzeugt ein Event.
+5. XSS-Payload erzeugt ein Event.
+6. Path-Traversal-Payload erzeugt ein Event.
+7. Gefaehrlicher Upload erzeugt ein `bad_upload` Event.
+8. Mehrere fehlgeschlagene Login-Versuche erzeugen einen `brute_force` Alert.
+9. Mehrere verschiedene Angriffstypen koennen zu einem `multi_vector` Alert gruppiert werden.
+10. Dashboard zeigt Events, Alerts, Attacks und Stats.
+11. Rules-UI kann Regeln erstellen und loeschen.
+12. Eine neu erstellte Regel erzeugt ohne Server-Neustart ein Event.
+13. Dokumentation und manuelle Testbeispiele liegen im Repository.
+14. Git-History zeigt die Arbeit der Teammitglieder nachvollziehbar.
 
----
+## 12. Erfuellungsstand am 07.06.2026
+
+| Bereich | Status |
+| --- | --- |
+| Webanwendung | umgesetzt |
+| Logging | umgesetzt |
+| Detection | umgesetzt fuer typische Demo-Angriffe |
+| Correlation | umgesetzt fuer Brute Force und Multi-Vector |
+| Dashboard | umgesetzt |
+| Rules-Management | umgesetzt |
+| Evaluation | vorbereitet und technisch getestet |
+| Benachrichtigungen | nicht umgesetzt, optional |
+| Rechteverletzungs-Detection | teilweise, Auth-Guard vorhanden, kein eigener Event-Typ |
+
+Details zur Evaluation stehen in `evaluation.md`.

@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { getBackendHost } from '@/actions/getBackendHost';
+import { getAuthHeaders } from '@/lib/dashboard';
 import ModalAddClass from '../components/ModalAddClass';
 import ModalAddRule from '../components/ModalAddRule';
 import ModalEdit from '../components/ModalEdit';
@@ -70,7 +71,7 @@ export default function Rules() {
         const load = async () => {
             try {
                 const backendHost = await getBackendHost();
-                const res = await fetch(`${backendHost}/rules`);
+                const res = await fetch(`${backendHost}/rules`, { headers: getAuthHeaders() });
                 if (!res.ok) throw new Error(`Fehler ${res.status}`);
                 const data: RuleClass[] = await res.json();
                 setClasses(data);
@@ -164,12 +165,18 @@ export default function Rules() {
 
             // Regeln löschen
             for (const ruleId of selection.ruleIds) {
-                const res = await fetch(`${backendHost}/rules/${ruleId}`, { method: 'DELETE' });
+                const res = await fetch(`${backendHost}/rules/${ruleId}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders(),
+                });
                 if (!res.ok) throw new Error(`Regel ${ruleId}: Fehler ${res.status}`);
             }
             // Klassen löschen (nur wenn explizit als Klasse gewählt, ohne einzelne Regeln davon)
             for (const classId of selection.classIds) {
-                const res = await fetch(`${backendHost}/rules/classes/${classId}`, { method: 'DELETE' });
+                const res = await fetch(`${backendHost}/rules/classes/${classId}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders(),
+                });
                 if (!res.ok) throw new Error(`Klasse ${classId}: Fehler ${res.status}`);
             }
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { IconX } from '@tabler/icons-react';
 import { getBackendHost } from '@/actions/getBackendHost';
+import { getAuthHeaders } from '@/lib/dashboard';
 
 interface Rule {
     id: number;
@@ -67,7 +68,10 @@ const ModalEdit = ({ isOpen, onClose, rule, onUpdated }: ModalProps) => {
             const backendHost = await getBackendHost();
             const res = await fetch(`${backendHost}/rules/${rule.id}`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(getAuthHeaders() as Record<string, string>),
+                },
                 body: JSON.stringify(payload),
             });
 
