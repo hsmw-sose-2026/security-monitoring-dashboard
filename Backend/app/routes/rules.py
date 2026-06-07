@@ -13,6 +13,8 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
+from app.services.security.rule_loader import reload_rules
+
 
 router = APIRouter(prefix="/rules", tags=["rules"])
 
@@ -96,6 +98,12 @@ def _load_rule_file(path: Path) -> dict[str, Any]:
 
 def _write_rule_file(path: Path, data: dict[str, Any]) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    reload_rules()
+
+
+def _delete_rule_file(path: Path) -> None:
+    path.unlink()
+    reload_rules()
 
 
 def _class_description(rule_name: str, data: dict[str, Any]) -> str:
@@ -204,7 +212,7 @@ def create_rule_class(payload: RuleClassCreate):
 @router.delete("/classes/{class_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_rule_class(class_id: int):
     path, _, _ = _find_class(class_id)
-    path.unlink()
+    _delete_rule_file(path)
 
 
 @router.post("", response_model=RuleResponse, status_code=status.HTTP_201_CREATED)
