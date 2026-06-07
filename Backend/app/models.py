@@ -30,5 +30,22 @@ class Alert(SQLModel, table=True):
     severity: str = "low"
 
 
+class ContactMessage(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    name: str
+    email: str
+    message: str
+    submitted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class UploadedFile(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    original_filename: str
+    stored_filename: str
+    file_extension: str
+    uploaded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    client_ip: str | None = None
+
+
 
 

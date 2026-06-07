@@ -1,5 +1,6 @@
 {
   "event_type": "sql_injection",
+  "enabled": "true",
   "severity": "high",
   "patterns": [
     {

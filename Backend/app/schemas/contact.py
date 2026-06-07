@@ -1,6 +1,16 @@
 """Contact form request and response schemas."""
 
-# TODO(Kevin): Schemas fuer das Kontaktformular definieren.
-# Ziel: ContactCreate soll name, email und message validieren; ContactResponse soll
-# bestaetigen, dass die Nachricht gespeichert wurde.
-# Fertig, wenn routes/contact.py diese Schemas fuer Request und Response nutzt.
+from pydantic import BaseModel
+
+# Request-Schema fuer die Kontaktanfrage, um die Daten aus dem Frontend zu validieren.
+class ContactCreate(BaseModel):
+    name: str
+    email: str
+    message: str
+
+# Response-Schema fuer die Kontaktanfrage, um dem Frontend zu bestaetigen dass die Nachricht gespeichert wurde.
+class ContactResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    status: str

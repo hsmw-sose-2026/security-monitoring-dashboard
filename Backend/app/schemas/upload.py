@@ -1,6 +1,10 @@
 """Upload request and response schemas."""
 
-# TODO(Kevin): Schemas fuer Datei-Uploads definieren.
-# Ziel: Die Response soll mindestens Originaldateiname, gespeicherten Dateinamen,
-# Dateiendung und Statusmeldung enthalten.
-# Fertig, wenn routes/upload.py eine einheitliche UploadResponse zurueckgibt.
+from pydantic import BaseModel
+
+# Response-Schema fuer die Upload-Antwort, um dem Frontend die Details zum hochgeladenen File strukturiert zu uebermitteln.
+class UploadResponse(BaseModel):
+    original_filename: str
+    stored_filename: str
+    file_extension: str
+    status: str
