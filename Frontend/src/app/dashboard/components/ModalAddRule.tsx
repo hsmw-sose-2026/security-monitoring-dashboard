@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IconX } from '@tabler/icons-react';
 import { getBackendHost } from '@/actions/getBackendHost';
 import { getAuthHeaders } from '@/lib/dashboard';
@@ -40,6 +40,19 @@ const ModalAddRule = ({ isOpen, onClose, classes, onCreated }: ModalProps) => {
     const [description, setDescription] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        if (classes.length === 0) {
+            setClassId(0);
+            return;
+        }
+
+        const selectedClassStillExists = classes.some(c => c.id === classId);
+        if (!selectedClassStillExists) {
+            setClassId(classes[0].id);
+        }
+    }, [classId, classes, isOpen]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -1,7 +1,7 @@
 'use client';
 
 import { IconSquarePlus, IconNewSection, IconEdit, IconTrash ,IconChevronDown, IconChevronRight } from '@tabler/icons-react';
-import { useState, useEffect } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { getBackendHost } from '@/actions/getBackendHost';
@@ -67,21 +67,22 @@ export default function Rules() {
 
     // ── Backend-Fetch ─────────────────────────────────────────────────────────
 
-    useEffect(() => {
-        const load = async () => {
-            try {
-                const backendHost = await getBackendHost();
-                const res = await fetch(`${backendHost}/rules`, { headers: getAuthHeaders() });
-                if (!res.ok) throw new Error(`Fehler ${res.status}`);
-                const data: RuleClass[] = await res.json();
-                setClasses(data);
-                setExpanded(data.map(c => c.id));
-            } catch (err: unknown) {
-                toast.error('Regeln konnten nicht geladen werden: ' + (err instanceof Error ? err.message : String(err)));
-            }
-        };
-        load();
+    const loadRules = useCallback(async () => {
+        try {
+            const backendHost = await getBackendHost();
+            const res = await fetch(`${backendHost}/rules`, { headers: getAuthHeaders() });
+            if (!res.ok) throw new Error(`Fehler ${res.status}`);
+            const data: RuleClass[] = await res.json();
+            setClasses(data);
+            setExpanded(data.map(c => c.id));
+        } catch (err: unknown) {
+            toast.error('Regeln konnten nicht geladen werden: ' + (err instanceof Error ? err.message : String(err)));
+        }
     }, []);
+
+    useEffect(() => {
+        loadRules();
+    }, [loadRules]);
 
     // ── Accordion ─────────────────────────────────────────────────────────────
 
@@ -120,10 +121,10 @@ export default function Rules() {
             }));
         } else {
             const newRuleIds = [...selection.ruleIds, ruleId];
-            // Wenn alle Regeln der Klasse ausgewählt → Klasse auch auswählen
-            const allSelected = cls.rules.every(r => newRuleIds.includes(r.id));
+            // Einzelne Regeln bleiben einzeln editierbar. Eine Klasse wird nur
+            // markiert, wenn die Klassen-Checkbox direkt genutzt wird.
             setSelection(prev => ({
-                classIds: allSelected ? [...new Set([...prev.classIds, cls.id])] : prev.classIds,
+                classIds: prev.classIds.filter(id => id !== cls.id),
                 ruleIds: newRuleIds,
             }));
         }
@@ -180,12 +181,8 @@ export default function Rules() {
                 if (!res.ok) throw new Error(`Klasse ${classId}: Fehler ${res.status}`);
             }
 
-            // Lokal entfernen
-            setClasses(prev => prev
-                .filter(c => !selection.classIds.includes(c.id))
-                .map(c => ({ ...c, rules: c.rules.filter(r => !selection.ruleIds.includes(r.id)) }))
-            );
             setSelection({ classIds: [], ruleIds: [] });
+            await loadRules();
             toast.success('Erfolgreich gelöscht.');
         } catch (err: unknown) {
             toast.error('Löschen fehlgeschlagen: ' + (err instanceof Error ? err.message : String(err)));
@@ -195,24 +192,20 @@ export default function Rules() {
     // ── Modal-Callbacks ───────────────────────────────────────────────────────
 
     const handleClassCreated = (cls: RuleClass) => {
-        setClasses(prev => [...prev, cls]);
-        setExpanded(prev => [...prev, cls.id]);
+        setSelection({ classIds: [], ruleIds: [] });
+        void loadRules();
         toast.success(`Klasse „${cls.name}" angelegt.`);
     };
 
     const handleRuleCreated = (classId: number, rule: Rule) => {
-        setClasses(prev => prev.map(c =>
-            c.id === classId ? { ...c, rules: [...c.rules, rule] } : c
-        ));
+        setSelection({ classIds: [], ruleIds: [] });
+        void loadRules();
         toast.success(`Regel „${rule.name}" angelegt.`);
     };
 
     const handleRuleUpdated = (updated: Rule) => {
-        setClasses(prev => prev.map(c => ({
-            ...c,
-            rules: c.rules.map(r => r.id === updated.id ? updated : r),
-        })));
         setSelection({ classIds: [], ruleIds: [] });
+        void loadRules();
         toast.success(`Regel „${updated.name}" aktualisiert.`);
     };
 
@@ -288,7 +281,7 @@ export default function Rules() {
                     </thead>
                     <tbody>
                         {classes.map(cls => (
-                            <>
+                            <Fragment key={`class-fragment-${cls.id}`}>
                                 {/* Klassen-Zeile */}
                                 <tr
                                     key={`class-${cls.id}`}
@@ -369,7 +362,7 @@ export default function Rules() {
                                         </td>
                                     </tr>
                                 )}
-                            </>
+                            </Fragment>
                         ))}
 
                         {classes.length === 0 && (
