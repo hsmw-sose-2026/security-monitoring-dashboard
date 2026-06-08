@@ -66,20 +66,20 @@ export function AttackRow({data, className, ...props}: {data: Attack} & Componen
                             </Button>
                         }
                     />
-                    <DialogContent className='w-max max-w-full! sm:rounded-4xl max-h-4/5 flex flex-col'>
+                    <DialogContent className='w-max max-w-full! sm:rounded-4xl max-h-4/5 flex flex-col bg-neutral-900 text-white border-neutral-700'>
                         <DialogHeader>
                             <DialogTitle className='text-center font-semibold text-xl'>Attack Info</DialogTitle>
                         </DialogHeader>
                         <div className='flex gap-4 justify-evenly flex-wrap text-base mb-4'>
                             <div>
                                 <span>Source IP: </span>
-                                <span className='font-mono bg-muted text-muted-foreground px-2 py-1 rounded-md text-sm'>{data.source_ip}</span>
+                                <span className='font-mono bg-neutral-800 text-neutral-300 px-2 py-1 rounded-md text-sm'>{data.source_ip}</span>
                             </div>
                             <div>
                                 <span>Zeitraum: </span>
-                                <span className='font-mono bg-muted text-muted-foreground px-2 py-1 rounded-md text-sm'>{startTime}</span>
+                                <span className='font-mono bg-neutral-800 text-neutral-300 px-2 py-1 rounded-md text-sm'>{startTime}</span>
                                 {' - '}
-                                <span className='font-mono bg-muted text-muted-foreground px-2 py-1 rounded-md text-sm'>{endTime}</span>
+                                <span className='font-mono bg-neutral-800 text-neutral-300 px-2 py-1 rounded-md text-sm'>{endTime}</span>
                             </div>
                             <div>
                                 <span>Severity: </span>

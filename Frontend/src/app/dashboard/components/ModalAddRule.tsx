@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { IconX } from '@tabler/icons-react';
 import { getBackendHost } from '@/actions/getBackendHost';
+import { getAuthHeaders } from '@/lib/dashboard';
 
 interface RuleClass {
     id: number;
@@ -61,7 +62,10 @@ const ModalAddRule = ({ isOpen, onClose, classes, onCreated }: ModalProps) => {
             const backendHost = await getBackendHost();
             const res = await fetch(`${backendHost}/rules`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(getAuthHeaders() as Record<string, string>),
+                },
                 body: JSON.stringify(payload),
             });
 

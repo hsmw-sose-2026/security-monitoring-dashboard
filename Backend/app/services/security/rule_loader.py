@@ -85,6 +85,13 @@ def load_all_rules() -> dict:
 ALL_RULES = load_all_rules()
 
 
+def reload_rules() -> None:
+    """Laedt alle Regeldateien neu in den In-Memory-Cache.
+    Wird nach Aenderungen ueber die Rules-API aufgerufen."""
+    ALL_RULES.clear()
+    ALL_RULES.update(load_all_rules())
+
+
 def get_rules(name: str) -> dict:
     """Gibt die Regeln fuer einen bestimmten Bereich zurueck.
     Beispiel: get_rules('sqli') gibt das geladene Dict aus sqli.json zurueck."""

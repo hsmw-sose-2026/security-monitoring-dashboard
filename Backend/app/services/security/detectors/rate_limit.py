@@ -1,14 +1,5 @@
 """Rate-limit anomaly detector."""
 
-# TODO(Jannis): Einfache Rate-Limit-Erkennung bauen.
-# Ziel: Requests pro IP in einem 1-Minuten-Fenster zaehlen und ungewoehnlich viele
-# Requests als rate_limit melden.
-# Fertig, wenn mehr als 50 Requests pro IP in 1 Minute ein rate_limit-Event oder Alert erzeugen.
-
-
-
-"""Rate-limit anomaly detector."""
-
 from datetime import datetime, timedelta, timezone
 from collections import defaultdict
 
@@ -23,7 +14,7 @@ RATE_LIMIT_WINDOW = 60         # zeit in sekunden
 
 def detect_rate_limit(context) -> dict | None:
     """Rate Limit Erkennung - gibt Details zurück oder None"""
-    ip = getattr(context, 'client_ip', 'unknown')
+    ip = context.source_ip
     now = datetime.now(timezone.utc)
 
     # entfernt alte einträge, nur aktuelles Zeitfenster behalten
@@ -39,10 +30,13 @@ def detect_rate_limit(context) -> dict | None:
         # rückgabe rate limit
         print(f"ALERT [Rate Limit] ({count} Requests von {ip} in {RATE_LIMIT_WINDOW}s)")
         return {
+            "event_type": "rate_limit",
+            "severity": "medium",
             "count": count,
             "ip": ip,
             "threshold": RATE_LIMIT_THRESHOLD,
-            "window": RATE_LIMIT_WINDOW
+            "window": RATE_LIMIT_WINDOW,
+            "detail": f"{count} Requests in {RATE_LIMIT_WINDOW}s",
         }
     
     # Ausgabe aller 10 Requests

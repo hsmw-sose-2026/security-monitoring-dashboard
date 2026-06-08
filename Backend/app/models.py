@@ -45,6 +45,9 @@ class UploadedFile(SQLModel, table=True):
     file_extension: str
     uploaded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     client_ip: str | None = None
+    status: str = "uploaded"
+    content_type: str | None = None
+    file_size: int | None = None
 
 
 

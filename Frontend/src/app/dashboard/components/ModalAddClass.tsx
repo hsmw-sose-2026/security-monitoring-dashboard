@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { IconX } from '@tabler/icons-react';
 import { getBackendHost } from '@/actions/getBackendHost';
+import { getAuthHeaders } from '@/lib/dashboard';
 
 interface ModalProps {
     isOpen: boolean;
@@ -26,7 +27,10 @@ const ModalAddClass = ({ isOpen, onClose, onCreated }: ModalProps) => {
             const backendHost = await getBackendHost();
             const res = await fetch(`${backendHost}/rules/classes`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(getAuthHeaders() as Record<string, string>),
+                },
                 body: JSON.stringify({ name: name.trim(), description: description.trim() }),
             });
 
