@@ -8,3 +8,6 @@ bcrypt              # passlib ist eine Bibliothek für die Hashing und Verwaltun
 python-multipart    # python-multipart ist eine Bibliothek zum Verarbeiten von multipart/Form-Data, oft verwendet bei HTTP-Uploads.
 requests
 pyjwt               # JSON Web Tokens fuer Authentifizierung. Signiert und verifiziert Tokens.
+scikit-learn        # ==1.9.0
+joblib              # ==1.5.3
+pandas              # ==3.0.3
