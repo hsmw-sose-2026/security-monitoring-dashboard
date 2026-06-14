@@ -18,6 +18,7 @@ ATTACK_CLASSIFICATION_PRIORITY = [
     "bad_upload",
     "xss",
     "rate_limit",
+    "ml_detected_attack",
 ]
 
 SEVERITY_SCORE = {
@@ -36,6 +37,7 @@ CLASSIFICATION_BONUS = {
     "rate_limit": 5,
     "suspicious_login_activity": 5,
     "reconnaissance": 0,
+    "ml_detected_attack": 12,
 }
 
 def group_events_into_attacks(session: Session) -> list[dict]:

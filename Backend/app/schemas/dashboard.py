@@ -44,3 +44,23 @@ class AlertResponse(BaseModel):
     source_ip: str
     message: str
     severity: str
+
+class DecodeStepResponse(BaseModel):
+    layer: str
+    output: str
+    changed: bool
+
+class ForensicResponse(BaseModel):
+    event_id: int
+    timestamp: datetime
+    source_ip: str
+    event_type: str
+    severity: str
+    original_payload: str
+    decode_steps: list[DecodeStepResponse]
+    final_decoded: str
+    ml_label: str
+    ml_confidence: float
+    p_malicious: float
+    regex_match: bool
+    explanation: str

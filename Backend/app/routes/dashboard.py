@@ -2,17 +2,21 @@
 # Liefern dem Frontend die Daten zum Anzeigen: einzelne Events, Alerts,
 # gruppierte Angriffe und ein paar allgemeine Zahlen.
 
+import json
+
 from fastapi import APIRouter, Depends, Query
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.database import get_session
+
+from app.models import SecurityEvent
 
 from app.repositories.event_repository import list_recent_events
 from app.repositories.alert_repository import list_recent_alerts
 from app.services.dashboard_service import build_dashboard_stats
 from app.services.detection import group_events_into_attacks
 from app.auth_utils import require_admin
-from app.schemas.dashboard import StatsResponse, EventResponse, AlertResponse, AttackResponse
+from app.schemas.dashboard import StatsResponse, EventResponse, AlertResponse, AttackResponse, ForensicResponse
 
 # Alle Endpoints in diesem Router sind durch require_admin geschuetzt.
 # Wer einen oeffentlichen Endpoint braucht, muss einen separaten Router anlegen.
@@ -52,3 +56,23 @@ def list_attacks(session: Session = Depends(get_session)):
 def get_stats(session: Session = Depends(get_session)) -> StatsResponse:
     # Einfache Kennzahlen fuer die Uebersichtsseite
     return build_dashboard_stats(session)
+
+@router.get("/forensic", response_model=list[ForensicResponse])
+def list_forensic_events(session: Session = Depends(get_session), limit: int = Query(50, ge=1, le=200)):
+    events = session.exec(
+        select(SecurityEvent)
+        .where(SecurityEvent.event_type == "ml_detected_attack")
+        .order_by(SecurityEvent.timestamp.desc())
+        .limit(limit)
+    ).all()
+    results = []
+    for event in events:
+        try:
+            report = json.loads(event.detail)
+            report["event_id"] = event.id
+            report["timestamp"] = event.timestamp
+            report["source_ip"] = event.source_ip
+            results.append(report)
+        except json.JSONDecodeError:
+            continue  # alte Events ohne Forensic-JSON überspringen
+    return results

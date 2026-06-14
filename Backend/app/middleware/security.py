@@ -11,6 +11,10 @@ from app.services.security.request_context import build_context
 from app.services.security.detectors.pattern_detector import run_all_pattern_rules
 from app.services.security import registry
 
+from app.services.security.detectors.ml_payload_detector import detect_ml_payload
+
+from app.services.security.forensic_analyzer import build_forensic_report, forensic_detail_json
+
 
 def log_finding(finding: dict, source_ip: str, path: str, request_id: str):
     """Schreibt einen einzelnen Finding als SecurityEvent in die DB."""
@@ -34,7 +38,9 @@ def log_special_finding(detector_name: str, result: dict, source_ip: str, path: 
     
     severity = result.get("severity", "medium")
     detail = result.get("detail") or str(result)
-    detail = f"[request_id={request_id}] {detail}"
+
+    if not str(detail).strip().startswith("{"):
+        detail = f"[request_id={request_id}] {detail}"
     
     with Session(engine) as session:
         log_security_event(
@@ -59,16 +65,36 @@ async def security_middleware(request: Request, call_next):
 
     # 2. Alle Pattern-Regeln (SQLi, XSS, Path Traversal) durchlaufen
     pattern_findings = run_all_pattern_rules(context)
+    
+    # 3. ML-Detector laufen lassen
 
-    # 3. Spezialdetektoren (Rate Limit, Bad Upload) ueber Registry laufen lassen
+    ml_result = None
+    if not pattern_findings:
+        ml_result = detect_ml_payload(context)
+
+    # 4. Spezialdetektoren (Rate Limit, Bad Upload) ueber Registry laufen lassen
     registry_results = registry.run_all_detectors(context) or {}
 
-    # 4. Pattern-Findings loggen
+    # 5. Pattern-Findings loggen
     for finding in pattern_findings:
         print(f"[Middleware] {request_id} {finding['event_type']} erkannt ({finding['name']}): {finding['matched_text']} in {finding['where']}")
         log_finding(finding, context.source_ip, context.path, request_id)
 
-    # 5. Spezialdetektor-Treffer loggen
+    # 6. ML-Resultat loggen
+    if ml_result:
+        report = build_forensic_report(
+            original_payload=context.searchable_text,
+            ml_label=ml_result["ml_label"],
+            ml_confidence=ml_result["confidence"],
+            p_malicious=ml_result["p_malicious"],
+            regex_match=False,
+            source_ip=context.source_ip,
+            severity=ml_result["severity"],
+        )
+        ml_result["detail"] = forensic_detail_json(report)
+        log_special_finding("ml_detected_attack", ml_result, context.source_ip, context.path, request_id)
+
+    # 7. Spezialdetektor-Treffer loggen
     # Spezialdetektoren returnen entweder None oder ein dict mit eigenen Feldern.
     # Pattern-Detektor-Treffer aus Registry (sql_injection, xss, path_traversal)
     # ignorieren wir bewusst - die laufen schon ueber pattern_findings.
@@ -80,7 +106,7 @@ async def security_middleware(request: Request, call_next):
         print(f"[Middleware] {request_id} {detector_name} erkannt: {result}")
         log_special_finding(detector_name, result, context.source_ip, context.path, request_id)
 
-    # 6. Request normal weiterleiten
+    # 8. Request normal weiterleiten
     response = await call_next(request)
     return response
 

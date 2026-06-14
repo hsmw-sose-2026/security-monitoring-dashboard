@@ -16,6 +16,8 @@ from app.auth_utils import hash_password
 from app.api.router import register_routers
 from app.middleware.security import security_middleware as security_logic
 
+from app.services.security.ml.ml_detector import lade_modell
+
 
 
 def seed_text_user():
@@ -35,6 +37,12 @@ def seed_text_user():
 async def lifespan(app: FastAPI):       # FastAPI unterstützt die Definition von Lebenszyklusereignissen, die beim Starten und Stoppen der Anwendung ausgeführt werden. Hier verwenden wir einen asynchronen Kontextmanager, um sicherzustellen, dass die Datenbanktabellen erstellt werden, bevor die Anwendung Anfragen verarbeitet.
     create_db_and_tables()  # Beim Starten der Anwendung werden die Tabellen in der Datenbank angelegt, falls sie noch nicht existieren. 
     seed_text_user()       # Außerdem legen wir hier Test-User an
+
+    try:
+        lade_modell()
+        print("ML-Modell geladen.")
+    except FileNotFoundError as e:
+        print(f"Warnung: ML-Modell nicht geladen: {e}")
     yield       # Das "yield" hier markiert den Punkt, an dem die Anwendung bereit ist, Anfragen zu verarbeiten. Alles vor "yield" wird beim Starten der Anwendung ausgeführt, und alles nach "yield" wird beim Stoppen der Anwendung ausgeführt. In diesem Fall haben wir nichts, was beim Stoppen der Anwendung ausgeführt werden muss, daher ist es leer.
 
 app = FastAPI(
