@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 from sqlmodel import Session, select
 
 from app.models import SecurityEvent, Alert
+from app.services.notifications.webhook import send_alert_webhook
 
 # Schwellenwerte definieren
 
@@ -124,6 +125,7 @@ def correlate(session: Session, source_ip: str) -> list[Alert]:
         session.add(alert)       # in die Session legen
         session.commit()         # tatsaechlich in die DB schreiben
         session.refresh(alert)   # von der DB vergebene ID zurueck ins Objekt lesen
+        send_alert_webhook(alert) # Webhook ausloesen, schickt Discord-Nachricht wenn severity == "critical"
         created.append(alert)
 
     return created
