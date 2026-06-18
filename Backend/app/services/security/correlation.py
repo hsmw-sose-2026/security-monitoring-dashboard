@@ -1,13 +1,10 @@
 """Correlation rules that turn multiple events into alerts."""
 
-<<<<<<< HEAD
-=======
 # TODO(Jonas): Mehrere Events zu Alerts zusammenfassen.
 # Ziel: Die bisherige Brute-Force-Regel aus detection.py hierher verschieben und spaeter
 # weitere Alert-Regeln ergaenzen, z.B. Rate-Limit-Alert.
 # Fertig, wenn bei mehr als 5 fehlgeschlagenen Logins pro IP in 1 Minute ein critical Alert entsteht.
 
->>>>>>> origin/integration-test
 from datetime import datetime, timedelta, timezone
 from sqlmodel import Session, select
 
@@ -214,15 +211,7 @@ def detect_honeypot_alert(session: Session, source_ip: str) -> dict | None:
 
 CORRELATION_RULES = [
     detect_brute_force,
-<<<<<<< HEAD
-    detect_multi_vector_alert,
-    detect_honeypot_alert,
-    detect_path_traversal_alert,
-    detect_rate_limit_alert,
-    detect_xss_alert,
-=======
     detect_multi_vector,
->>>>>>> origin/integration-test
 ]
 
 def is_duplicate_alert(session: Session, source_ip: str, alert_type: str, minutes: int = 5) -> bool:
