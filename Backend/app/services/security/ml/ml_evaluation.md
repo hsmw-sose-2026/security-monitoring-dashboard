@@ -110,20 +110,87 @@ Interpretation:
 > Hinweis: Einzelne Werte können zwischen Läufen um 1–2 % schwanken (Solver-Nichtdeterminismus
 > bei dieser scikit-learn-Version). Das Gesamtbild bleibt stabil.
 
-## 6. Schwellenwert-Analyse (TODO)
+## 6. Schwellenwert-Analyse
 
-> Geplant: `predict_proba` auswerten und Precision/Recall beim produktiven Cutoff **0.75**
-> betrachten (abgestimmt mit Jonas). Ergänzend eine gestaffelte Logik prüfen:
-> `>= 0.95 -> Event`, `0.75–0.95 -> Review`, `< 0.75 -> ignorieren`.
-> Liefert die Zahl, wie viele Treffer/Fehlalarme bei genau dem Schwellenwert entstehen, der
-> live läuft.
+Das Backend loest ein Event aus, wenn `p_malicious >= 0.75` (abgestimmt mit Jonas). `p_malicious`
+ist `1 - P(benign)`, also die Gesamt-Wahrscheinlichkeit "Angriff" – bewusst nicht die `confidence`
+der Top-Klasse, da diese sich bei einem 5-Klassen-Modell ueber die Angriffsklassen verteilt und
+oft unter 0.75 liegt, obwohl klar ein Angriff vorliegt (Beispiel: `' OR '1'='1` hat confidence
+0.58, aber p_malicious 0.83).
 
-## 7. Vergleich gegen Regex-Baseline (TODO)
+Die Analyse (`threshold_analysis.py`) misst auf demselben leakage-sicheren Test-Set wie die
+Haupt-Evaluation, wie sich verschiedene Schwellen auf Erkennung und Fehlalarme auswirken:
 
-> Geplant: dieselben Test-Payloads gegen die bestehende Regex-/Pattern-Pipeline laufen lassen
-> und gegenüberstellen, was die Regex fängt vs. was das ML zusätzlich fängt – besonders bei
-> obfuskierten Varianten. Erwartung: Die Regex erkennt unverschleierte Payloads, das ML schließt
-> die Obfuskations-Lücke. Ergebnis als Tabelle „erkannt durch Regex / ML / beide / keines".
+```
+Schwelle | gefangen / verpasst | Fehlalarme | Precision  Recall   F1
+--------------------------------------------------------------------
+  0.50   |   96    /    0      |     2      |  0.980    1.000   0.990
+  0.60   |   96    /    0      |     0      |  1.000    1.000   1.000
+  0.70   |   95    /    1      |     0      |  1.000    0.990   0.995
+  0.75   |   89    /    7      |     0      |  1.000    0.927   0.962   <- produktiv
+  0.80   |   83    /   13      |     0      |  1.000    0.865   0.927
+  0.90   |   50    /   46      |     0      |  1.000    0.521   0.685
+  0.95   |   13    /   83      |     0      |  1.000    0.135   0.239
+```
+
+(Test-Set: 186 Beispiele, davon 96 Angriffe und 90 harmlose.)
+
+**Bei der produktiven Schwelle 0.75:**
+- Angriffe gefangen: 89 von 96 (Recall 92,7 %)
+- Fehlalarme auf harmlosen Inputs: 0 von 90 (Precision 100 %)
+- Verpasste Angriffe nach Typ: 4x cmd_injection (die bekannte schwaechste Klasse – kurze,
+  natuersprachlich aussehende Payloads)
+
+**Warum 0.75 und nicht niedriger?** Auf dem synthetischen Test-Set waere 0.60 sogar optimal
+(alle Angriffe, null Fehlalarme). 0.75 wird trotzdem bewusst gewaehlt, als **Sicherheitspuffer**:
+In der realen Pipeline analysiert das ML auch Request-Texte, die nicht im Training waren
+(Endpoint-Pfade, JSON-Bodies). Diese koennen hoehere p_malicious-Werte erzeugen; eine hoehere
+Schwelle schuetzt vor den dadurch entstehenden Fehlalarmen. 0.75 opfert etwas Recall (92,7 % statt
+100 %) zugunsten von Robustheit gegen ungesehene Daten.
+
+**Interpretation des Trade-offs:** Niedrige Schwellen fangen mehr Angriffe, erzeugen aber
+Fehlalarme (0.50: 2). Ab 0.60 verschwinden die Fehlalarme. Sehr hohe Schwellen (0.90+) verpassen
+einen Grossteil der Angriffe. Die Precision bleibt ab 0.60 durchgehend bei 100 % – wenn das
+System Alarm schlaegt, ist es auf diesem Datensatz immer ein echter Angriff.
+
+## 7. Vergleich gegen Regex-Baseline
+
+Kernfrage des ganzen Moduls: Was faengt das ML zusaetzlich gegenueber der bestehenden
+Regex-/Pattern-Pipeline? Dazu werden dieselben Test-Payloads durch *beide* Systeme geschickt
+(`regex_vs_ml.py`). Fairer Vergleich: Beide sehen denselben Payload, fuer die Regex als
+query-Parameter `q` in einem RequestContext (so wie er live ueber `/search?q=...` kaeme). Als
+"ML erkennt" gilt `p_malicious >= 0.75` – exakt der produktive Cutoff.
+
+Ergebnis auf 96 Angriffen im Test-Set:
+
+| Kategorie | Anzahl |
+| --- | --- |
+| Von beiden erkannt | 29 |
+| Nur von Regex erkannt | 4 |
+| **Nur von ML erkannt** | **60** |
+| Von keinem erkannt | 3 |
+
+| System | Erkennungsrate |
+| --- | --- |
+| Regex allein | 33 / 96 (34,4 %) |
+| ML allein | 89 / 96 (92,7 %) |
+
+Fehlalarme auf 90 harmlosen Inputs: Regex 0, ML 0.
+
+**Interpretation:**
+- **60 Angriffe werden ausschliesslich vom ML erkannt.** Das sind die obfuskierten Varianten
+  (URL-/Doppel-Encoding, Hex-Escapes, Tab-Trennung), durch die die Regex blind durchlaeuft.
+  Beispiel: `' \x4F\x52 '1'='\x31` ist `' OR '1'='1` mit Hex-Escapes – die Regex sucht nach `OR`,
+  findet aber `\x4F\x52` nicht; das char-n-gram-Modell erkennt das Muster trotzdem.
+- **4 Angriffe erkennt nur die Regex** (knapp unter der ML-Schwelle). Das belegt: Die Systeme
+  ergaenzen sich – der Hybrid-Ansatz ist staerker als jedes System allein. Das ML ersetzt die
+  Regex nicht, es schliesst ihre Obfuskations-Luecke.
+- **3 Angriffe rutschen durch beide.** Auch der Hybrid ist kein Allheilmittel; diese Faelle
+  zeigen die verbleibende Grenze.
+
+Hinweis zum Aufruf: `regex_vs_ml.py` greift auf den Backend-Code (Pattern-Pipeline) zu und wird
+daher als Modul gestartet:
+`python -m app.services.security.ml.regex_vs_ml` (aus dem `Backend/`-Ordner).
 
 ## 8. Grenzen und nächste Schritte
 
