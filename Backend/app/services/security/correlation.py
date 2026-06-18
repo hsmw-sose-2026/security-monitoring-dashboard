@@ -1,5 +1,13 @@
 """Correlation rules that turn multiple events into alerts."""
 
+<<<<<<< HEAD
+=======
+# TODO(Jonas): Mehrere Events zu Alerts zusammenfassen.
+# Ziel: Die bisherige Brute-Force-Regel aus detection.py hierher verschieben und spaeter
+# weitere Alert-Regeln ergaenzen, z.B. Rate-Limit-Alert.
+# Fertig, wenn bei mehr als 5 fehlgeschlagenen Logins pro IP in 1 Minute ein critical Alert entsteht.
+
+>>>>>>> origin/integration-test
 from datetime import datetime, timedelta, timezone
 from sqlmodel import Session, select
 
@@ -9,6 +17,8 @@ from app.models import SecurityEvent, Alert
 
 BRUTE_FORCE_WINDOW = 60        # Sekunden: Zeitfenster fuer Brute-Force-Erkennung
 BRUTE_FORCE_THRESHOLD = 5       # Failed login Anzahl um als Bruteforce zu gelten
+MULTI_VECTOR_WINDOW_MINUTES = 15
+MULTI_VECTOR_MIN_EVENT_TYPES = 2
 
 HONEYPOT_WINDOW = 300          # Sekunden: Zeitfenster für Honeypot-Erkennung
 HONEYPOT_THRESHOLD = 2         # Anzahl Honeypot-Treffer um als Reconnaissance zu gelten
@@ -36,11 +46,54 @@ def detect_brute_force(session: Session, source_ip: str) -> dict | None:
     if len(fails) >= BRUTE_FORCE_THRESHOLD:
         return {
             "alert_type": "brute_force",
-            "severity": "high",
+            "severity": "critical",
             "source_ip": source_ip,
             "message": f"{len(fails)} failed logins von {source_ip} in {BRUTE_FORCE_WINDOW}s",
         }
     return None
+
+def detect_multi_vector(session: Session, source_ip: str) -> dict | None:
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=MULTI_VECTOR_WINDOW_MINUTES)
+
+    statement = (
+        select(SecurityEvent)
+        .where(
+            SecurityEvent.source_ip == source_ip,
+            SecurityEvent.timestamp >= cutoff,
+        )
+        .order_by(SecurityEvent.timestamp)
+    )
+    events = session.exec(statement).all()
+
+    if not events:
+        return None
+
+    event_types = {event.event_type for event in events}
+
+    #Reine Login Fehler sind Brute Force, aber noch kein Multi Vector Angriff
+    if event_types == {"failed_login"}:
+        return None
+
+    if len(event_types) < MULTI_VECTOR_MIN_EVENT_TYPES:
+        return None
+
+    sorted_event_types = sorted(event_types)
+    affected_paths = sorted({event.path for event in events if event.path})[:3]
+    message = (
+        f"Multi-Vector-Angriff von {source_ip}: "
+        f"{len(events)} Events in {MULTI_VECTOR_WINDOW_MINUTES} Minuten, "
+        f"Typen: {', '.join(sorted_event_types)}"
+    )
+
+    if affected_paths:
+        message += f", Pfade: {', '.join(affected_paths)}"
+
+    return {
+        "alert_type": "multi_vector",
+        "severity": "high",
+        "source_ip": source_ip,
+        "message": message,
+    }
 
 
 def detect_path_traversal_alert(session: Session, source_ip: str) -> dict | None:
@@ -161,26 +214,30 @@ def detect_honeypot_alert(session: Session, source_ip: str) -> dict | None:
 
 CORRELATION_RULES = [
     detect_brute_force,
+<<<<<<< HEAD
     detect_multi_vector_alert,
     detect_honeypot_alert,
     detect_path_traversal_alert,
     detect_rate_limit_alert,
     detect_xss_alert,
+=======
+    detect_multi_vector,
+>>>>>>> origin/integration-test
 ]
 
 def is_duplicate_alert(session: Session, source_ip: str, alert_type: str, minutes: int = 5) -> bool:
     # Duplicate-Check: gleichen Alert nicht mehrfach in 5 Min speichern,
-        # sonst spammt das bei jedem neuen Event denselben Alarm.
-        cutoff = datetime.now(timezone.utc) - timedelta(minutes=minutes)
-        existing = session.exec(
-            select(Alert).where(
-                Alert.source_ip == source_ip,
-                Alert.alert_type == alert_type,
-                Alert.timestamp >= cutoff,
-            )
-        ).first()
+    # sonst spammt das bei jedem neuen Event denselben Alarm.
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=minutes)
+    existing = session.exec(
+        select(Alert).where(
+            Alert.source_ip == source_ip,
+            Alert.alert_type == alert_type,
+            Alert.timestamp >= cutoff,
+        )
+    ).first()
 
-        return existing is not None
+    return existing is not None
 
 
 def correlate(session: Session, source_ip: str) -> list[Alert]:

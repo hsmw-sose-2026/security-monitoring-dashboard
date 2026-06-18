@@ -2,39 +2,42 @@
 
 import {IconEye} from '@tabler/icons-react';
 import type {ComponentProps} from 'react';
-import {formatRelativeDate} from '@/lib/dashboard';
+import {formatRelativeDate, mapRange} from '@/lib/dashboard';
 import type {Attack} from '@/types/dashboard';
 import {Button} from '../ui/button';
 import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from '../ui/dialog';
 import {EventTable} from './event-table';
 
 export function AttackRow({data, className, ...props}: {data: Attack} & ComponentProps<'tr'>) {
+    const startTime = new Date(data.start_time)
+        .toLocaleString('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+        })
+        .replace(/,/g, '');
+    const endTime = new Date(data.end_time)
+        .toLocaleString('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+        })
+        .replace(/,/g, '');
+
     return (
         <tr className={`hover:bg-neutral-800 h-11 [&>td]:p-4 [&>td]:py-2 border-b last:border-none border-neutral-700 ${className}`} {...props}>
             <td className='font-mono text-neutral-400'>
-                {new Date(data.start_time)
-                    .toLocaleString('de-DE', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                        hour12: false,
-                    })
-                    .replace(/,/g, '')}
+                {startTime}
                 <br />
-                {new Date(data.end_time)
-                    .toLocaleString('de-DE', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                        hour12: false,
-                    })
-                    .replace(/,/g, '')}
+                {endTime}
             </td>
             <td>{formatRelativeDate(new Date(data.start_time), new Date(data.end_time))}</td>
             <td>{data.event_count}</td>
@@ -42,6 +45,17 @@ export function AttackRow({data, className, ...props}: {data: Attack} & Componen
             <td className='font-mono'>{data.source_ip}</td>
             <td>
                 <SeverityBadge severity={data.severity} />
+            </td>
+            <td>
+                <span
+                    className='font-mono text-sm px-2 py-1 rounded-md bg-muted'
+                    style={{
+                        color: `oklch(from var(--color-teal-500) l c h / ${mapRange(data.risk_score, 0, 100, 0.5, 1)})`,
+                        background: `oklch(from var(--color-teal-500) l c h / ${mapRange(data.risk_score, 0, 100, 0.1, 0.3)})`,
+                    }}
+                >
+                    {data.risk_score}
+                </span>
             </td>
             <td className='flex items-center justify-center h-16'>
                 <Dialog>
@@ -52,11 +66,40 @@ export function AttackRow({data, className, ...props}: {data: Attack} & Componen
                             </Button>
                         }
                     />
-                    <DialogContent className='w-max max-w-full! sm:rounded-4xl max-h-4/5 flex flex-col'>
+                    <DialogContent className='w-max max-w-full! sm:rounded-4xl max-h-4/5 flex flex-col bg-neutral-900 text-white border-neutral-700'>
                         <DialogHeader>
-                            <DialogTitle className='text-center font-semibold text-xl'>Events</DialogTitle>
+                            <DialogTitle className='text-center font-semibold text-xl'>Attack Info</DialogTitle>
                         </DialogHeader>
-                        <EventTable events={data.events} className='flex-1 min-h-0' />
+                        <div className='flex gap-4 justify-evenly flex-wrap text-base mb-4'>
+                            <div>
+                                <span>Source IP: </span>
+                                <span className='font-mono bg-neutral-800 text-neutral-300 px-2 py-1 rounded-md text-sm'>{data.source_ip}</span>
+                            </div>
+                            <div>
+                                <span>Zeitraum: </span>
+                                <span className='font-mono bg-neutral-800 text-neutral-300 px-2 py-1 rounded-md text-sm'>{startTime}</span>
+                                {' - '}
+                                <span className='font-mono bg-neutral-800 text-neutral-300 px-2 py-1 rounded-md text-sm'>{endTime}</span>
+                            </div>
+                            <div>
+                                <span>Severity: </span>
+                                <SeverityBadge severity={data.severity} />
+                            </div>
+                            <div>
+                                <span>Risk Score: </span>
+                                <span
+                                    className='font-mono text-sm px-2 py-1 rounded-md bg-muted'
+                                    style={{
+                                        color: `oklch(from var(--color-teal-500) l c h / ${mapRange(data.risk_score, 0, 100, 0.5, 1)})`,
+                                        background: `oklch(from var(--color-teal-500) l c h / ${mapRange(data.risk_score, 0, 100, 0.1, 0.3)})`,
+                                    }}
+                                >
+                                    {data.risk_score}
+                                </span>
+                            </div>
+                        </div>
+                        <h3 className='text-center font-semibold text-lg'>Events</h3>
+                        <EventTable events={data.events} className='self-start flex-1 min-h-0' />
                     </DialogContent>
                 </Dialog>
             </td>

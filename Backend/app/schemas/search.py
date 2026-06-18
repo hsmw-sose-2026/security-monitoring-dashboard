@@ -6,6 +6,11 @@ from pydantic import BaseModel
 class SearchResult(BaseModel):
     name: str
     description: str | None = None
+<<<<<<< HEAD
+=======
+    url: str | None = None
+    category: str | None = None
+>>>>>>> origin/integration-test
 
 # Response-Schema fuer die Suchanfrage, um die Suchergebnisse strukturiert an das Frontend zu uebermitteln.
 class SearchResponse(BaseModel):

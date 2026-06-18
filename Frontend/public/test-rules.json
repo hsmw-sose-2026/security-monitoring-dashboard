@@ -1,0 +1,158 @@
+[
+  {
+    "id": 1,
+    "name": "Injection Attacks",
+    "description": "Erkennung von Injection-Angriffen auf Eingabefelder",
+    "rules": [
+      {
+        "id": 101,
+        "classId": 1,
+        "name": "SQL Injection Basic",
+        "eventType": "sqli",
+        "target": "body",
+        "regex": "(?i)(select|insert|update|delete|drop|union|or 1=1|--|;--)",
+        "severity": "high",
+        "enabled": true,
+        "description": "Erkennt grundlegende SQL-Injection-Muster"
+      },
+      {
+        "id": 102,
+        "classId": 1,
+        "name": "SQL Injection Advanced",
+        "eventType": "sqli",
+        "target": "body",
+        "regex": "(?i)(benchmark\\s*\\(|sleep\\s*\\(|waitfor\\s+delay|xp_cmdshell|information_schema)",
+        "severity": "critical",
+        "enabled": true,
+        "description": "Erkennt erweiterte SQL-Injection-Techniken wie Blind SQLi"
+      },
+      {
+        "id": 103,
+        "classId": 1,
+        "name": "XSS Reflected",
+        "eventType": "xss",
+        "target": "query",
+        "regex": "(?i)(<script|javascript:|onerror=|onload=|alert\\s*\\(|document\\.cookie)",
+        "severity": "medium",
+        "enabled": true,
+        "description": "Erkennt reflektierte XSS-Angriffe in URL-Parametern"
+      },
+      {
+        "id": 104,
+        "classId": 1,
+        "name": "XSS Stored",
+        "eventType": "xss",
+        "target": "body",
+        "regex": "(?i)(<iframe|<img[^>]+src=|<svg[^>]+onload=|expression\\s*\\()",
+        "severity": "high",
+        "enabled": false,
+        "description": "Erkennt gespeicherte XSS-Angriffe in POST-Daten"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Brute Force",
+    "description": "Erkennung von Brute-Force- und Credential-Stuffing-Angriffen",
+    "rules": [
+      {
+        "id": 201,
+        "classId": 2,
+        "name": "Login Brute Force",
+        "eventType": "failed_login",
+        "target": "auth",
+        "regex": "failed_login",
+        "severity": "critical",
+        "enabled": true,
+        "description": "Löst aus nach mehreren fehlgeschlagenen Login-Versuchen von einer IP"
+      },
+      {
+        "id": 202,
+        "classId": 2,
+        "name": "Credential Stuffing",
+        "eventType": "failed_login",
+        "target": "auth",
+        "regex": "failed_login",
+        "severity": "high",
+        "enabled": true,
+        "description": "Erkennt viele Login-Versuche mit verschiedenen Benutzernamen von einer IP"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Path Traversal",
+    "description": "Erkennung von Directory-Traversal-Angriffen",
+    "rules": [
+      {
+        "id": 301,
+        "classId": 3,
+        "name": "Path Traversal Basic",
+        "eventType": "path_traversal",
+        "target": "query",
+        "regex": "(\\.\\./|\\.\\.\\\\/|%2e%2e%2f|%252e%252e%252f)",
+        "severity": "high",
+        "enabled": true,
+        "description": "Erkennt einfache ../ Traversal-Versuche"
+      },
+      {
+        "id": 302,
+        "classId": 3,
+        "name": "Sensitive File Access",
+        "eventType": "path_traversal",
+        "target": "query",
+        "regex": "(?i)(/etc/passwd|/etc/shadow|/proc/self|web\\.config|\\.env|\\.git/)",
+        "severity": "critical",
+        "enabled": true,
+        "description": "Erkennt Zugriffe auf bekannte sensible Systemdateien"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "File Upload",
+    "description": "Erkennung gefährlicher Datei-Uploads",
+    "rules": [
+      {
+        "id": 401,
+        "classId": 4,
+        "name": "Dangerous File Extension",
+        "eventType": "upload",
+        "target": "filename",
+        "regex": "(?i)\\.(php|php3|php5|phtml|exe|sh|bat|cmd|jsp|asp|aspx)$",
+        "severity": "critical",
+        "enabled": true,
+        "description": "Blockiert Uploads von ausführbaren Dateitypen"
+      },
+      {
+        "id": 402,
+        "classId": 4,
+        "name": "Double Extension",
+        "eventType": "upload",
+        "target": "filename",
+        "regex": "(?i)\\.(jpg|png|gif|pdf)\\.(php|exe|sh|bat)$",
+        "severity": "high",
+        "enabled": true,
+        "description": "Erkennt Dateien mit doppelter Extension zur Umgehung von Filtern"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Rate Limiting",
+    "description": "Erkennung von ungewöhnlich hohem Request-Volumen",
+    "rules": [
+      {
+        "id": 501,
+        "classId": 5,
+        "name": "High Request Rate",
+        "eventType": "rate_limit",
+        "target": "ip",
+        "regex": "rate_limit",
+        "severity": "medium",
+        "enabled": false,
+        "description": "Löst aus wenn eine IP mehr als 100 Requests pro Minute sendet"
+      }
+    ]
+  }
+]

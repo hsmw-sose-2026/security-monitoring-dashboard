@@ -1,4 +1,13 @@
+<<<<<<< HEAD
 import type {Alert, Attack, SecurityEvent} from '@/types/dashboard';
+=======
+import type {Alert, Attack, Event} from '@/types/dashboard';
+
+export function getAuthHeaders(): HeadersInit {
+    const token = localStorage.getItem('access_token');
+    return token ? {Authorization: `Bearer ${token}`} : {};
+}
+>>>>>>> origin/integration-test
 
 export function getUniqueOf<T, K extends keyof T>(data: T[], key: K): T[K][] {
     return [...new Set(data.map((e) => e[key]))].filter((val) => val !== null && val !== undefined) as T[K][];
@@ -53,6 +62,7 @@ export function formatRelativeDate(date1: Date, date2: Date): string {
     return parts.join(' ');
 }
 
+<<<<<<< HEAD
 export function filterEvents(
     events: SecurityEvent[],
     startDateTime: Date | null,
@@ -62,6 +72,21 @@ export function filterEvents(
     path: SecurityEvent['path'],
     severity: SecurityEvent['severity'],
 ): SecurityEvent[] {
+=======
+export const mapRange = (value: number, inMin: number, inMax: number, outMin: number, outMax: number) => {
+    return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+};
+
+export function filterEvents(
+    events: Event[],
+    startDateTime: Date | null,
+    endDateTime: Date | null,
+    eventType: Event['event_type'],
+    sourceIP: Event['source_ip'],
+    path: Event['path'],
+    severity: Event['severity'],
+): Event[] {
+>>>>>>> origin/integration-test
     const filteredEvents = [];
 
     for (const event of events) {
@@ -111,6 +136,11 @@ export function filterAlerts(
 
 export function filterAttacks(
     events: Attack[],
+<<<<<<< HEAD
+=======
+    startDateTime: Date | null,
+    endDateTime: Date | null,
+>>>>>>> origin/integration-test
     classification: Attack['classification'],
     sourceIP: Attack['source_ip'],
     severity: Attack['severity'],
@@ -120,7 +150,13 @@ export function filterAttacks(
     for (const event of events) {
         let matches = true;
 
+<<<<<<< HEAD
         if (classification !== 'Alle Klassifizierungen' && event.classification !== classification) matches = false;
+=======
+        if (startDateTime !== null && endDateTime !== null && (endDateTime < new Date(event.start_time) || new Date(event.end_time) < startDateTime))
+            matches = false;
+        else if (classification !== 'Alle Klassifizierungen' && event.classification !== classification) matches = false;
+>>>>>>> origin/integration-test
         else if (sourceIP !== '' && !event.source_ip.includes(sourceIP)) matches = false;
         else if (severity !== 'Alle Severities' && event.severity !== severity) matches = false;
 

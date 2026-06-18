@@ -12,6 +12,33 @@ from app.models import SecurityEvent
 ATTACK_GAP_MINUTES = 15        # Pause zwischen zwei Events, ab der wir einen neuen Angriff 
 BRUTE_FORCE_THRESHOLD = 5      # Anzahl failed logins im Fenster bis wir Alarm schlagen
 
+ATTACK_CLASSIFICATION_PRIORITY = [
+    "sql_injection",
+    "path_traversal",
+    "bad_upload",
+    "xss",
+    "rate_limit",
+    "ml_detected_attack",
+]
+
+SEVERITY_SCORE = {
+    "low": 10,
+    "medium": 35,
+    "high": 65,
+    "critical": 85,
+}
+CLASSIFICATION_BONUS = {
+    "brute_force": 15,
+    "multi_vector": 20,
+    "sql_injection": 15,
+    "path_traversal": 15,
+    "bad_upload": 10,
+    "xss": 10,
+    "rate_limit": 5,
+    "suspicious_login_activity": 5,
+    "reconnaissance": 0,
+    "ml_detected_attack": 12,
+}
 
 def group_events_into_attacks(session: Session) -> list[dict]:
     # Alle Events holen, sortiert nach IP und dann nach Zeit.
@@ -55,12 +82,32 @@ def group_events_into_attacks(session: Session) -> list[dict]:
         # Set comprehension: baut eine Menge aller vorkommenden event_types,
         # sortiert sie dann in eine Liste.
         attack["event_types"] = sorted({e.event_type for e in attack["events"]})
-        attack["severity"] = worst_severity(attack["events"])
-        attack["classification"] = classify_attack(attack["events"])
+        severity = worst_severity(attack["events"])
+        classification = classify_attack(attack["events"])
+
+        attack["severity"] = severity
+        attack["classification"] = classification
+        attack["risk_score"] = calculate_risk_score(
+            attack["events"],
+            severity,
+            classification,
+        )
 
     # Neueste Angriffe zuerst, damit sie im Dashboard oben stehen
     attacks.sort(key=lambda a: a["start_time"], reverse=True)
     return attacks
+
+
+def calculate_risk_score(
+    events: list[SecurityEvent],
+    severity: str,
+    classification: str,
+) -> int:
+    base_score = SEVERITY_SCORE.get(severity, 10)
+    classification_bonus = CLASSIFICATION_BONUS.get(classification, 0)
+    volume_bonus = min(len(events) * 2, 15)
+
+    return min(base_score + classification_bonus + volume_bonus, 100)
 
 
 def worst_severity(events: list[SecurityEvent]) -> str:
@@ -74,17 +121,17 @@ def worst_severity(events: list[SecurityEvent]) -> str:
 
 
 def classify_attack(events: list[SecurityEvent]) -> str:
-    # Fuer jetzt kennen wir nur sql_injection als "echte" Angriffsart.
-    # Spaeter kommen hier xss, path_traversal usw. dazu.
-    has_sql_injection = any(e.event_type == "sql_injection" for e in events)
+    event_types = {event.event_type for event in events}
 
+    for event_type in ATTACK_CLASSIFICATION_PRIORITY:
+        if event_type in event_types:
+            return event_type
+    
     failed_logins = 0
-    for e in events:
-        if e.event_type == "failed_login":
+    for event in events:
+        if event.event_type == "failed_login":
             failed_logins += 1
 
-    if has_sql_injection:
-        return "sql_injection"
     if failed_logins >= BRUTE_FORCE_THRESHOLD:
         return "brute_force"
     if failed_logins > 0:

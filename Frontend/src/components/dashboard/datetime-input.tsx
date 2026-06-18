@@ -14,14 +14,15 @@ export function DateInput({date, setDate, placeholder}: {date: Date | null; setD
         <Popover>
             <PopoverTrigger
                 render={
-                    <Button variant='outline' className='w-32 justify-between font-normal'>
+                    <Button variant='outline' className='w-32 justify-between font-normal bg-neutral-800 text-white border-neutral-700 hover:bg-neutral-700'>
                         {date ? format(date, 'dd.MM.yyyy') : placeholder || 'Datum auswählen'}
                         <IconChevronDown data-icon='inline-end' />
                     </Button>
                 }
             />
-            <PopoverContent className='w-auto overflow-hidden p-0' align='center'>
+            <PopoverContent className='w-auto overflow-hidden p-0 bg-neutral-900 text-white border-neutral-700' align='center'>
                 <Calendar
+                    className='bg-neutral-900 text-white'
                     mode='single'
                     selected={date ?? undefined}
                     captionLayout='dropdown'

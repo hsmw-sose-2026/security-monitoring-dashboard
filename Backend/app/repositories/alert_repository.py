@@ -27,8 +27,12 @@ def create_alert(
     return alert
 
 
-def list_recent_alerts(session: Session, limit: int = 100) -> list[Alert]:
-    statement = select(Alert).order_by(Alert.timestamp.desc()).limit(limit)
+def list_recent_alerts(session: Session, limit: int = 100, offset: int = 0) -> list[Alert]:
+    statement = ( 
+        select(Alert)
+        .order_by(Alert.timestamp.desc())
+        .offset(offset)
+        .limit(limit))
     return session.exec(statement).all()
 
 

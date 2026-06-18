@@ -1,0 +1,12 @@
+DEMO SECURITY TEST FILE
+=======================
+This is a harmless test file simulating a malicious upload attempt.
+It is used by the Security Monitoring Dashboard demo to trigger
+upload-based attack detection in the backend.
+
+Filename:  demo-attack.exe
+Type:      Blocked file extension (.exe)
+Purpose:   Frontend demo – no actual executable code
+
+[EICAR-like marker for testing]
+X5O!P%@AP[4\PZX54(P^)7CC)7}$DEMO-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*

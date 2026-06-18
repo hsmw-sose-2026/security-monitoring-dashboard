@@ -1,7 +1,37 @@
 {
   "event_type": "bad_upload",
+<<<<<<< HEAD
   "enabled": "true",
+=======
+  "enabled": true,
+>>>>>>> origin/integration-test
   "severity": "medium",
-  "blocked_extensions": [],
+  "blocked_extensions": [
+    ".exe",
+    ".dll",
+    ".bat",
+    ".cmd",
+    ".com",
+    ".scr",
+    ".ps1",
+    ".vbs",
+    ".js",
+    ".jar",
+    ".msi",
+    ".php",
+    ".phtml",
+    ".jsp",
+    ".asp",
+    ".aspx",
+    ".sh",
+    ".bash",
+    ".zsh",
+    ".py",
+    ".pl",
+    ".rb",
+    ".html",
+    ".htm",
+    ".svg"
+  ],
   "allowed_extensions": []
 }

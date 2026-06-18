@@ -1,6 +1,10 @@
 {
   "event_type": "sql_injection",
+<<<<<<< HEAD
   "enabled": "true",
+=======
+  "enabled": true,
+>>>>>>> origin/integration-test
   "severity": "high",
   "patterns": [
     {

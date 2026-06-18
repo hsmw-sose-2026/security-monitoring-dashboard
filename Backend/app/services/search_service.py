@@ -12,6 +12,12 @@ SEARCHABLE_ITEMS: list[SearchResult] = [
     SearchResult(name="Phishing erkennen"),
     SearchResult(name="VPN im Alltag"),
     SearchResult(name="Datenschutz im Unternehmen"),
+<<<<<<< HEAD
+=======
+    SearchResult(name="Startseite", url="/", category="Seite"),
+    SearchResult(name="Kontakt", url="/contact", category="Seite"),
+    SearchResult(name="Upload", url="/upload", category="Seite"),
+>>>>>>> origin/integration-test
 ]
 
 
@@ -22,7 +28,16 @@ def search_items(q: str) -> SearchResponse:
     # Nur Eintraege behalten deren Name den Suchbegriff enthaelt
     matches = [
         item for item in SEARCHABLE_ITEMS
+<<<<<<< HEAD
         if query_lower in item.name.lower()
+=======
+        if (
+            query_lower in item.name.lower()
+            or query_lower in (item.description or "").lower()
+            or query_lower in (item.category or "").lower(
+            )
+        )
+>>>>>>> origin/integration-test
     ]
 
     return SearchResponse(

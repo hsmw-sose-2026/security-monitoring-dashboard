@@ -13,6 +13,7 @@ yarn-error.log*.pnpm-debug.log*
 *.tsbuildinfo
 next-env.d.ts
 
+<<<<<<< HEAD
 # Environment files
 .env
 .env.local
@@ -238,3 +239,7 @@ __marimo__/
 
 # Persönliche Notizen (nicht für das Team)
 NOTES.md
+=======
+# root overrides
+!lib/
+>>>>>>> origin/integration-test

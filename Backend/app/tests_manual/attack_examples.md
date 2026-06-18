@@ -1,19 +1,36 @@
 # Angriffsbeispiele
 
+<<<<<<< HEAD
 Diese Datei dokumentiert manuelle Testfälle für die wichtigsten Sicherheitsereignisse im Backend. Jeder Block beschreibt einen konkreten Request, den erwarteten Event-Typ, die Severity, den sichtbaren Dashboard-Pfad und die Frage, ob ein Alert entstehen soll.
+=======
+Manuelle Beispiele fuer die wichtigsten Angriffstypen. Nach dem Ausfuehren sollten die Events im Dashboard unter `/dashboard/events` sichtbar sein.
+>>>>>>> origin/integration-test
 
-Ziel:
-- Fuer jede geforderte Angriffsart ein konkretes Beispiel festhalten.
-- Zu jedem Beispiel notieren, welches Event oder welcher Alert im Dashboard entstehen soll.
+## 1. SQL Injection
+- **Angriffstyp**: SQL Injection
+- **Beispiel-Request**:
+  ```bash
+  curl -X POST http://localhost:8000/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"username":"admin'\'' OR '\''1'\''='\''1'\'' --","password":"anything"}'
+  ```
+- **Erwarteter event_type**: `sql_injection`
+- **Erwartete severity**: `high`
+- **Pfad im Dashboard**: `/dashboard/events` und `/dashboard/attacks`
+- **Alert**: Ja (bei Korrelation)
 
-Pro Beispiel dokumentieren:
-- Angriffstyp
-- Eingabe oder Request
-- Erwarteter event_type
-- Erwartete severity
-- Erwarteter Pfad im Dashboard
-- Ob daraus ein Alert entstehen soll
+## 2. XSS
+- **Angriffstyp**: Cross-Site Scripting
+- **Beispiel-Request**:
+  ```bash
+  curl "http://localhost:8000/search?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E"
+  ```
+- **Erwarteter event_type**: `xss`
+- **Erwartete severity**: `medium`
+- **Pfad im Dashboard**: `/dashboard/events`
+- **Alert**: Nein (erstmal nur Event)
 
+<<<<<<< HEAD
 Fertig, wenn jede Anforderung aus dem Anforderungskatalog Abschnitt 3 ein manuelles Testszenario hat.
 
 # Angriffsbeispiele
@@ -40,6 +57,14 @@ Fertig, wenn jede Anforderung aus dem Anforderungskatalog Abschnitt 3 ein manuel
 - **Angriffstyp**: Path Traversal
 - **Beschreibung**: Eine Pfad-Manipulation versucht, auf Dateien außerhalb des Webroot zuzugreifen.
 - **Eingabe/Request**: `/search?q=../../etc/passwd`
+=======
+## 3. Path Traversal
+- **Angriffstyp**: Path Traversal
+- **Beispiel-Request**:
+  ```bash
+  curl "http://localhost:8000/search?q=../../etc/passwd"
+  ```
+>>>>>>> origin/integration-test
 - **Erwarteter event_type**: `path_traversal`
 - **Erwartete severity**: `high`
 - **Pfad im Dashboard**: `/dashboard/events` und `/dashboard/attacks`
@@ -47,24 +72,47 @@ Fertig, wenn jede Anforderung aus dem Anforderungskatalog Abschnitt 3 ein manuel
 
 ## 4. Bad Upload
 - **Angriffstyp**: Gefährlicher Datei-Upload
+<<<<<<< HEAD
 - **Beschreibung**: Ein Upload mit einer riskanten Dateiendung wird erkannt.
 - **Eingabe/Request**: Hochladen von `malware.exe` oder `virus.bat`
+=======
+- **Beispiel-Request**:
+  ```bash
+  curl -F "file=@../Frontend/public/demo-attack.exe" http://localhost:8000/upload
+  ```
+>>>>>>> origin/integration-test
 - **Erwarteter event_type**: `bad_upload`
 - **Erwartete severity**: `medium`
 - **Pfad im Dashboard**: `/dashboard/events`
 - **Alert**: Nein
 
+<<<<<<< HEAD
 ## 5. Brute Force / Failed Login
 - **Angriffstyp**: Brute Force Login
 - **Beschreibung**: Mehrere fehlgeschlagene Login-Versuche von derselben IP erzeugen wiederholte `failed_login`-Events.
 - **Eingabe/Request**: 6+ fehlgeschlagene Login-Versuche innerhalb kurzer Zeit von derselben IP
 - **Erwarteter event_type**: `failed_login`
 - **Erwartete severity**: `high` (bei Alert)
+=======
+## 5. Brute Force
+- **Angriffstyp**: Brute Force Login
+- **Beispiel-Request**:
+  ```bash
+  for i in 1 2 3 4 5 6; do
+    curl -X POST http://localhost:8000/auth/login \
+      -H "Content-Type: application/json" \
+      -d "{\"username\":\"admin\",\"password\":\"wrong$i\"}"
+  done
+  ```
+- **Erwarteter event_type**: `failed_login`
+- **Erwartete severity**: `medium` bei Events, `critical` beim Alert
+>>>>>>> origin/integration-test
 - **Pfad im Dashboard**: `/dashboard/alerts` und `/dashboard/attacks`
 - **Alert**: Ja (`brute_force`)
 
 ## 6. Rate Limit
 - **Angriffstyp**: Rate Limit / Flooding
+<<<<<<< HEAD
 - **Beschreibung**: Ein einzelner Client sendet eine sehr hohe Anzahl von Requests in kurzer Zeit.
 - **Eingabe/Request**: >50 Requests von derselben IP in 60 Sekunden (z.B. `curl`-Loop oder `ab`)
 - **Erwarteter event_type**: `rate_limit`
@@ -91,3 +139,19 @@ Die Backend-Erkennung für SQLi, XSS und Path Traversal basiert auf Regex- oder 
 - Komplexe oder verschleierte Payloads können unentdeckt bleiben, wenn sie nicht dem vordefinierten Muster entsprechen.
 - Gleichzeitig kann es bei ungewöhnlichen Eingaben zu False Positives kommen, weil ein Regex nur auf Textmuster und nicht auf tatsächliche Ausführungssemantik prüft.
 - Deshalb ist die Dokumentation der Erkennungsgrenzen wichtig: die Regeln sind nützlich für erste Warnungen, aber sie ersetzen keine vollständige Kontextanalyse oder sichere Input-Handhabung.
+=======
+- **Beispiel-Request**:
+  ```bash
+  for i in $(seq 1 55); do
+    curl -s "http://localhost:8000/health" > /dev/null
+  done
+  ```
+- **Erwarteter event_type**: `rate_limit`
+- **Erwartete severity**: `medium`
+- **Pfad im Dashboard**: `/dashboard/events`
+- **Alert**: Nein (kann später erweitert werden)
+
+## Grenzen der Regex-Erkennung
+
+Die aktuelle Erkennung ist fuer den Prototyp bewusst regelbasiert. Sie erkennt typische SQLi-, XSS- und Path-Traversal-Payloads gut genug fuer die Demo, kann aber durch starke Obfuskation, Encoding-Kombinationen oder sehr kontextspezifische Payloads umgangen werden.
+>>>>>>> origin/integration-test

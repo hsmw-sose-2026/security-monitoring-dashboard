@@ -1,14 +1,22 @@
 # Python Abhaengigkeiten kommen spaeter hier rein.
-# Wahrscheinlich z.B. fastapi, uvicorn, sqlmodel, python-jose und passlib.
+# Wahrscheinlich z.B. fastapi, uvicorn, sqlmodel und passlib.
 
 fastapi             # FastAPI ist ein modernes, schnelles (high-performance) Web-Framework für den Aufbau von APIs mit Python 3.7+ basierend auf Standard-Python-Typen.    
 uvicorn[standard]   # Server für FastAPI, der asynchronen Support bietet und auf Uvicorn basiert. -- Starten Sie den Server mit uvicorn main:app --reload
 sqlmodel            # SQLModel ist eine ORM-Bibliothek, die auf SQLAlchemy und Pydantic basiert. Sie ermöglicht es, Datenbankmodelle zu definieren und mit der Datenbank zu interagieren.
 bcrypt              # passlib ist eine Bibliothek für die Hashing und Verwaltung von Passwörtern. bcrypt ist ein sicheres Hashing-Verfahren.
 python-multipart    # python-multipart ist eine Bibliothek zum Verarbeiten von multipart/Form-Data, oft verwendet bei HTTP-Uploads.
+<<<<<<< HEAD
 
 # Test-Abhängigkeiten
 pytest              # Testing Framework
 pytest-asyncio      # AsyncIO-Unterstützung für pytest (für async Tests)
 pytest-mock         # Mock-Unterstützung für pytest
 pytest-cov          # Coverage-Reporting für pytest     
+=======
+requests
+pyjwt               # JSON Web Tokens fuer Authentifizierung. Signiert und verifiziert Tokens.
+scikit-learn        # ==1.9.0
+joblib              # ==1.5.3
+pandas              # ==3.0.3
+>>>>>>> origin/integration-test
