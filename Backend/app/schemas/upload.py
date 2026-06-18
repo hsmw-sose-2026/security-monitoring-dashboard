@@ -12,6 +12,7 @@ class UploadResponse(BaseModel):
     status: str
     content_type: str | None = None
     file_size: int | None = None
+    #Ablehnungsgrund, falls der status "rejected" ist
     reason: str | None = None
 
 

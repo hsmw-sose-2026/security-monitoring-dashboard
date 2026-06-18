@@ -12,6 +12,9 @@ SEARCHABLE_ITEMS: list[SearchResult] = [
     SearchResult(name="Phishing erkennen"),
     SearchResult(name="VPN im Alltag"),
     SearchResult(name="Datenschutz im Unternehmen"),
+    SearchResult(name="Netzwerksicherheit für Grundlagen"),
+    SearchResult(name="Backup-Strategien für Unternehmen"),
+    SearchResult(name="Sichere Softwareentwicklung"),
     SearchResult(name="Startseite", url="/", category="Seite"),
     SearchResult(name="Kontakt", url="/contact", category="Seite"),
     SearchResult(name="Upload", url="/upload", category="Seite"),
@@ -19,7 +22,7 @@ SEARCHABLE_ITEMS: list[SearchResult] = [
 
 
 def search_items(q: str) -> SearchResponse:
-    # Suchbegriff in Kleinbuchstaben umwandeln für Suche
+    # Suchbegriff in Kleinbuchstaben umwandeln fuer Suche
     query_lower = q.lower()
 
     # Nur Eintraege behalten deren Name den Suchbegriff enthaelt

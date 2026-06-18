@@ -21,7 +21,7 @@ def create_contact_message(session: Session, data: ContactCreate) -> ContactMess
         session.refresh(message)
     except SQLAlchemyError as exc:
         session.rollback()
-        raise RuntimeError("Kontaktanfrage konnte nicht gespeichert werden") from exc
+        raise RuntimeError("Kontaktnachricht konnte nicht gespeichert werden.") from exc
 
     return message
 
