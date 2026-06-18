@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { IconHome, IconCloud, IconLogout, IconSword, IconMoon, IconSun, IconUpload, IconMail, IconBug } from '@tabler/icons-react';
+import { IconHome, IconCloud, IconLogout, IconSword, IconMoon, IconSun, IconUpload, IconMail, IconBug, IconReportAnalytics } from '@tabler/icons-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
@@ -12,14 +12,15 @@ const XSS_DEMO_SEARCH = '<script>alert("XSS")</script>';
 
 export default function Home() {
     const pathname = usePathname();
-    const router = useRouter();
-    const [isAdmin, setIsAdmin] = useState(false);
+    const router = useRouter();                                 // Router für Navigation und Redirects
+    const [isAdmin, setIsAdmin] = useState(false);              // Admin-Status für bedingte Navigationselemente
     const [isLoading, setIsLoading] = useState(true);
-    const { darkMode, toggleDarkMode } = useDarkMode();
+    const { darkMode, toggleDarkMode } = useDarkMode();         // Dark Mode Hook
 
     // Ref/Callback um den SearchBar-Wert von außen zu setzen
     const [searchDemoValue, setSearchDemoValue] = useState<string | undefined>(undefined);
 
+    // Überprüfen der Authentifizierung und Rollenstatus beim Laden der Seite
     useEffect(() => {
         const role = localStorage.getItem("role");
         if (!role) {
@@ -37,6 +38,11 @@ export default function Home() {
             </div>
         );
     }
+
+// -------------------------------------------------------------------------------------------------------------
+// ---------------------------------------------- MAIN PAGE ----------------------------------------------------
+// -------------------------------------------------------------------------------------------------------------    
+
 
     return (
         <>
@@ -58,11 +64,13 @@ export default function Home() {
                             <IconBug className='size-3.5' />
                             XSS-Demo
                         </button>
+                        {/* Dark Mode Toggle */}
                         <button onClick={toggleDarkMode}
                             className='flex items-center justify-center size-9 rounded-full bg-primary-2 text-white hover:bg-primary-3-hover transition-colors'
                             title={darkMode ? 'Light Mode' : 'Dark Mode'}>
                             {darkMode ? <IconSun className='size-5' /> : <IconMoon className='size-5' />}
                         </button>
+                        {/* Logout Button */}
                         <button
                             onClick={() => {
                                 localStorage.removeItem("access_token");
@@ -77,6 +85,8 @@ export default function Home() {
                     </div>
                 </div>
             </header>
+
+            {/* Navigation */}
 
             <div className='flex pt-20'>
                 <div className='fixed left-0 top-20 h-screen w-45 bg-card border-r border-border p-3 flex flex-col gap-2 z-40'>
@@ -101,16 +111,27 @@ export default function Home() {
                         <IconMail className='size-5' />
                         <span>Kontakt</span>
                     </Link>
+
+                    {/* Admin Dashboard Link */}
                     {isAdmin && (
                         <Link href='/dashboard' className={clsx('flex items-center gap-2 rounded-2xl px-4 py-4 w-full bg-primary text-foreground hover:bg-primary-hover transition-colors')}>
                             <IconSword className='size-5' />
                             <span>Dashboard</span>
                         </Link>
                     )}
+                    {isAdmin && (
+                        <Link href='/dashboard/forensic' className={clsx('flex items-center gap-2 rounded-2xl px-4 py-4 w-full bg-primary text-foreground hover:bg-primary-hover transition-colors')}>
+                            <IconReportAnalytics className='size-5' />
+                            <span>Forensik</span>
+                        </Link>
+                    )}
+
                     <Link href='/impressum' className={clsx('gap-2 fixed bottom-2 rounded-2xl px-4 py-4 text-primary-2 hover:bg-primary-hover transition-colors')}>
                         <span>Impressum</span>
                     </Link>
                 </div>
+
+                {/* Main Content -------------------------------------------------------------------*/}
 
                 <div className='flex-1 ml-45 p-4 bg-background text-foreground min-h-screen'>
                     <article className='flex flex-col items-center justify-center bg-background text-foreground rounded-2xl px-6 py-4 h-50'>
