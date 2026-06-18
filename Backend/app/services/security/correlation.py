@@ -18,6 +18,18 @@ BRUTE_FORCE_THRESHOLD = 5       # Failed login Anzahl um als Bruteforce zu gelte
 MULTI_VECTOR_WINDOW_MINUTES = 15
 MULTI_VECTOR_MIN_EVENT_TYPES = 2
 
+HONEYPOT_WINDOW = 300          # Sekunden: Zeitfenster für Honeypot-Erkennung
+HONEYPOT_THRESHOLD = 2         # Anzahl Honeypot-Treffer um als Reconnaissance zu gelten
+
+PATH_TRAVERSAL_WINDOW = 300    # Sekunden: Zeitfenster für Path-Traversal-Erkennung
+PATH_TRAVERSAL_THRESHOLD = 3    # Anzahl Path-Traversal-Versuche um als Attack zu gelten
+
+RATE_LIMIT_WINDOW = 60         # Sekunden: Zeitfenster für Rate-Limit-Erkennung
+RATE_LIMIT_THRESHOLD = 5        # Anzahl Rate-Limit-Events um als Alert zu gelten
+
+XSS_WINDOW = 300               # Sekunden: Zeitfenster für XSS-Erkennung
+XSS_THRESHOLD = 3              # Anzahl XSS-Versuche um als Attack zu gelten
+
 
 def detect_brute_force(session: Session, source_ip: str) -> dict | None:
     # Nur Events anschauen die neuer sind als der Cutoff
@@ -82,10 +94,106 @@ def detect_multi_vector(session: Session, source_ip: str) -> dict | None:
     }
 
 
-# Neue Regel dazu = Funktion schreiben und hier eintragen.
-# (Jannis) heißt wenn du neue Dinge wie rate limit erstellst einfach hier eintragen
+def detect_path_traversal_alert(session: Session, source_ip: str) -> dict | None:
+    """Aggregiert mehrere Path-Traversal-Events zu einem Alert."""
+    cutoff = datetime.now(timezone.utc) - timedelta(seconds=PATH_TRAVERSAL_WINDOW)
+    statement = select(SecurityEvent).where(
+        SecurityEvent.source_ip == source_ip,
+        SecurityEvent.event_type == "path_traversal",
+        SecurityEvent.timestamp >= cutoff,
+    )
+    attempts = session.exec(statement).all()
+
+    if len(attempts) >= PATH_TRAVERSAL_THRESHOLD:
+        # Details der Versuche sammeln
+        details = ", ".join([event.detail for event in attempts[:3]])  # Erste 3 Versuche
+        return {
+            "alert_type": "path_traversal",
+            "severity": "high",
+            "source_ip": source_ip,
+            "message": f"{len(attempts)} Path-Traversal-Versuche von {source_ip} in {PATH_TRAVERSAL_WINDOW}s. Patterns: {details}",
+        }
+    return None
+
+
+def detect_rate_limit_alert(session: Session, source_ip: str) -> dict | None:
+    """Aggregiert mehrere Rate-Limit-Events zu einem Alert."""
+    cutoff = datetime.now(timezone.utc) - timedelta(seconds=RATE_LIMIT_WINDOW)
+    statement = select(SecurityEvent).where(
+        SecurityEvent.source_ip == source_ip,
+        SecurityEvent.event_type == "rate_limit",
+        SecurityEvent.timestamp >= cutoff,
+    )
+    events = session.exec(statement).all()
+
+    if len(events) >= RATE_LIMIT_THRESHOLD:
+        return {
+            "alert_type": "rate_limit",
+            "severity": "medium",
+            "source_ip": source_ip,
+            "message": f"{len(events)} Rate-Limit-Verletzungen von {source_ip} in {RATE_LIMIT_WINDOW}s",
+        }
+    return None
+
+
+def detect_xss_alert(session: Session, source_ip: str) -> dict | None:
+    """Aggregiert mehrere XSS-Erkennung zu einem Alert."""
+    cutoff = datetime.now(timezone.utc) - timedelta(seconds=XSS_WINDOW)
+    statement = select(SecurityEvent).where(
+        SecurityEvent.source_ip == source_ip,
+        SecurityEvent.event_type == "xss",
+        SecurityEvent.timestamp >= cutoff,
+    )
+    attempts = session.exec(statement).all()
+
+    if len(attempts) >= XSS_THRESHOLD:
+        # Details der Versuche sammeln
+        details = ", ".join([event.detail for event in attempts[:3]])  # Erste 3 Versuche
+        return {
+            "alert_type": "xss",
+            "severity": "high",
+            "source_ip": source_ip,
+            "message": f"{len(attempts)} XSS-Versuche von {source_ip} in {XSS_WINDOW}s. Patterns: {details}",
+        }
+    return None
+
+
+def detect_honeypot_alert(session: Session, source_ip: str) -> dict | None:
+    """Detects reconnaissance attempts through honeypot endpoint access.
+    
+    Multiple honeypot hits from the same IP in short time window indicate
+    automated scanning/reconnaissance, not accidental discovery.
+    """
+    cutoff = datetime.now(timezone.utc) - timedelta(seconds=HONEYPOT_WINDOW)
+    statement = select(SecurityEvent).where(
+        SecurityEvent.source_ip == source_ip,
+        SecurityEvent.event_type == "honeypot_triggered",
+        SecurityEvent.timestamp >= cutoff,
+    )
+    hits = session.exec(statement).all()
+
+    if len(hits) > HONEYPOT_THRESHOLD:
+        # Honeypot Zugriffswege
+        paths = [event.path for event in hits[:5]]  # ersten 5 Versuche
+        details = ", ".join(paths)
+        return {
+            "alert_type": "reconnaissance",
+            "severity": "critical",
+            "source_ip": source_ip,
+            "message": f"Reconnaissance attempt by {source_ip}: {len(hits)} honeypot hits in {HONEYPOT_WINDOW}s. Paths: {details}",
+        }
+    return None
+
+
+
+# Reihenfolge: spezifische Regeln zuerst, breite Multi-Vector-Regel zuletzt,
+# damit pro IP der passendste Alert zündet, bevor der Catch-All greift.
 CORRELATION_RULES = [
     detect_brute_force,
+    detect_honeypot_alert,
+    detect_path_traversal_alert,
+    detect_xss_alert,
+    detect_rate_limit_alert,
     detect_multi_vector,
 ]
 
@@ -129,3 +237,4 @@ def correlate(session: Session, source_ip: str) -> list[Alert]:
         created.append(alert)
 
     return created
+

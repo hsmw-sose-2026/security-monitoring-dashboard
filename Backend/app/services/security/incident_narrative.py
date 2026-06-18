@@ -6,7 +6,7 @@ from datetime import datetime
 # Reihenfolge in der Event-Typen im Bericht erwaehnt werden.
 # Bildet einen narrativ sinnvollen Ablauf: Reconnaissance -> Injection -> Eskalation.
 PHASE_ORDER = [
-    "honeypot",
+    "honeypot_triggered",
     "path_traversal",
     "bad_upload",
     "xss",
@@ -20,7 +20,7 @@ PHASE_ORDER = [
 
 # Lesbare Beschreibung pro Event-Typ
 PHASE_DESCRIPTIONS = {
-    "honeypot":           "Reconnaissance über Honeypot-Pfad",
+    "honeypot_triggered": "Reconnaissance über Honeypot-Pfad",
     "path_traversal":     "Path-Traversal-Versuch im Dateisystem",
     "bad_upload":         "Upload einer blockierten Datei",
     "xss":                "Cross-Site-Scripting-Versuch",

@@ -1,6 +1,6 @@
 'use client';
 
-import {IconCalendarDue, IconGraph, IconListCheck, IconSpeakerphone, IconSword} from '@tabler/icons-react';
+import {IconCalendarDue, IconGraph, IconListCheck, IconMicroscope, IconSpeakerphone, IconSword} from '@tabler/icons-react';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {cn} from '@/lib/utils';
@@ -59,6 +59,16 @@ export function NavBar() {
             >
                 <IconListCheck className='size-5' />
                 Regeln
+            </Link>
+            <Link
+                className={cn(
+                    'flex items-center gap-1 px-3 pl-2.5 py-1 hover:bg-neutral-800 rounded-lg transition-colors',
+                    pathname === '/dashboard/forensic' && 'bg-neutral-800',
+                )}
+                href='/dashboard/forensic'
+            >
+                <IconMicroscope className='size-5' />
+                Forensik
             </Link>
         </nav>
     );

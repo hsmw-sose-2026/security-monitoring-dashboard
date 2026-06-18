@@ -17,6 +17,11 @@ def _validate_rule(rule_name: str, data: dict) -> None:
     if rule_name == "upload_extensions":
         return
     
+    # Sonderfall: honeypot_paths wird vom honeypot_detector direkt gelesen,
+    # hat ein voellig anderes Schema (paths/responses/alert_threshold)
+    if rule_name == "honeypot_paths":
+        return
+    
     # Pflichtfelder pruefen
     required = ["event_type", "severity", "patterns"]
     for field in required:

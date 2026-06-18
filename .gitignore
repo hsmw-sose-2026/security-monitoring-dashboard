@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# wurde nicht hinzugefügt?
+.next/
+node_modules/
+
 # Distribution / packaging
 .Python
 build/
@@ -215,3 +219,6 @@ __marimo__/
 
 # Persönliche Notizen (nicht für das Team)
 NOTES.md
+
+# Lokale E2E-Tests (nicht ins Repo)
+Backend/e2e_test.py

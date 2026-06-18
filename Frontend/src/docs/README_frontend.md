@@ -43,7 +43,7 @@ Frontend
 ├───dashboard
 │   │   class-override.tsx
 │   │   globals.css
-│   │   layout.tsx
+│   │   layout.tsx                  ← Admin-Guard + Dark-Mode-Root
 │   │   page.tsx                    ← Angriffs-Übersicht (Tabelle mit Filtern)
 │   │
 │   ├───alerts
@@ -52,9 +52,15 @@ Frontend
 │   ├───components
 │   │       ModalAddClass.tsx
 │   │       ModalAddRule.tsx
+│   │       ModalAdd.tsx
 │   │       ModalEdit.tsx
+│   │       ModalForensicDetails.tsx  ← Detail-Modal für ML-detektierte Payloads
 │   │
 │   ├───events
+│   │       page.tsx
+│   │
+│   ├───forensic                      ← Forensik-Seite zu ML-Payloads
+│   │       ForensicEvent.tsx
 │   │       page.tsx
 │   │
 │   ├───rules
@@ -82,6 +88,15 @@ Frontend
 └───upload
         page.tsx
         uploadpage.tsx
+
+src/components                       ← Wiederverwendbare UI-Komponenten
+├───SearchBar.tsx
+├───dashboard/                       ← Dashboard-Widgets (event/alert/attack rows, charts, kpi cards, nav-bar)
+└───ui/                              ← Generische UI-Primitives (button, card, input, dialog, ...)
+
+src/lib/dashboard.ts                ← Typen & Fetch-Helper fürs Dashboard
+src/types/dashboard.ts              ← Shared Typen
+src/actions/getBackendHost.ts       ← Backend-URL Helper
 ```
 
 ---
@@ -117,7 +132,11 @@ Zeigt alle vom Backend geloggten Angriffe in einer gefilterbaren Tabelle. Verfü
 - Source IP (Freitext)
 - Severity (Dropdown)
 
-Weitere Unterseiten: Events (`/dashboard/events`), Alerts (`/dashboard/alerts`), Statistiken (`/dashboard/stats`).
+Weitere Unterseiten: Events (`/dashboard/events`), Alerts (`/dashboard/alerts`), Statistiken (`/dashboard/stats`), Forensik (`/dashboard/forensic`).
+
+### Forensik (`/dashboard/forensic`) — nur für Admins
+
+Zeigt die vom ML-Detektor erkannten Payloads an. Pro Event sind Original-Payload, Decode-Schritte (URL-/HTML-/Hex-/NFKC-Normalisierung), Score und Erkärung sichtbar. Über das Detail-Modal (`ModalForensicDetails`) lassen sich die einzelnen Decoding-Stufen nachvollziehen.
 
 ### Rules (`/dashboard/rules`) — nur für Admins
 

@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "description": "Honeypot paths - decoy endpoints to detect reconnaissance",
+  "paths": [
+    "/.env",
+    "/wp-admin",
+    "/.git/config",
+    "/admin/backup.sql",
+    "/phpmyadmin",
+    "/requirements.txt"
+  ],
+  "responses": {
+    "default": "404",
+    "comment": "Return 404 to appear like a normal missing endpoint. No redirect, no info leak."
+  },
+  "alert_threshold": {
+    "severity": "critical",
+    "comment": "Every honeypot hit is a critical security event - indicates active reconnaissance"
+  }
+}

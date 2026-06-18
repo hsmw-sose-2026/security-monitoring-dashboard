@@ -48,7 +48,3 @@ class UploadedFile(SQLModel, table=True):
     status: str = "uploaded"
     content_type: str | None = None
     file_size: int | None = None
-
-
-
-

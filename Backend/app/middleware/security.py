@@ -34,10 +34,15 @@ def log_special_finding(detector_name: str, result: dict, source_ip: str, path: 
     """Schreibt einen Spezialdetektor-Treffer als SecurityEvent in die DB.
     Spezialdetektoren returnen heterogene Dicts (Rate Limit: count/window,
     Bad Upload: extension/filename). Wir extrahieren das Wesentliche und
-    fallen auf sinnvolle Defaults zurueck."""
+    fallen auf sinnvolle Defaults zurueck.
+    
+    Event-Typ: Detektoren deklarieren ihren canonical event_type im Result-Dict
+    (z.B. honeypot_detector -> 'honeypot_triggered'). Fehlt diese Angabe, nehmen
+    wir den detector_name als Fallback."""
     
     severity = result.get("severity", "medium")
     detail = result.get("detail") or str(result)
+    event_type = result.get("event_type") or detector_name
 
     if not str(detail).strip().startswith("{"):
         detail = f"[request_id={request_id}] {detail}"
@@ -45,7 +50,7 @@ def log_special_finding(detector_name: str, result: dict, source_ip: str, path: 
     with Session(engine) as session:
         log_security_event(
             session=session,
-            event_type=detector_name,
+            event_type=event_type,
             source_ip=source_ip,
             path=path,
             detail=detail,
