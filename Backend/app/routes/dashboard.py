@@ -4,6 +4,7 @@
 
 import json
 
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session, select
 
@@ -15,6 +16,7 @@ from app.repositories.event_repository import list_recent_events
 from app.repositories.alert_repository import list_recent_alerts
 from app.services.dashboard_service import build_dashboard_stats
 from app.services.detection import group_events_into_attacks
+from app.services.security.incident_narrative import generate_narrative
 from app.auth_utils import require_admin
 from app.schemas.dashboard import StatsResponse, EventResponse, AlertResponse, AttackResponse, ForensicResponse
 
@@ -50,6 +52,22 @@ def list_alerts(
 def list_attacks(session: Session = Depends(get_session)):
     # Events zu Angriffen gruppiert, das eigentliche "Herzstueck" fuers Dashboard
     return group_events_into_attacks(session)
+
+
+@router.get("/attacks/{source_ip}/report", response_model=str)
+def get_attack_report(source_ip: str, session: Session = Depends(get_session)):
+    clusters = group_events_into_attacks(session)
+
+    # Ersten Treffer nehmen – Liste ist nach start_time desc sortiert, juengster zuerst
+    cluster = next((c for c in clusters if c["source_ip"] == source_ip), None)
+
+    if cluster is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Kein Angriffs-Cluster fuer IP {source_ip} gefunden.",
+        )
+
+    return generate_narrative(cluster)
 
 
 @router.get("/stats", response_model=StatsResponse)
