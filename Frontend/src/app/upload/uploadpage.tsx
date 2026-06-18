@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { IconCloud, IconLogout, IconX, IconUpload, IconMoon, IconSun, IconHome, IconMail, IconBug, IconSword } from '@tabler/icons-react';
+import { IconCloud, IconLogout, IconX, IconUpload, IconMoon, IconSun, IconHome, IconMail, IconBug, IconSword, IconReportAnalytics } from '@tabler/icons-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
@@ -173,6 +173,12 @@ export default function Upload() {
                         <Link href='/dashboard' className={clsx('flex items-center gap-2 rounded-2xl px-4 py-4 w-full bg-primary text-foreground hover:bg-primary-hover transition-colors')}>
                             <IconSword className='size-5' />
                             <span>Dashboard</span>
+                        </Link>
+                    )}
+                    {isAdmin && (
+                        <Link href='/dashboard/forensic' className={clsx('flex items-center gap-2 rounded-2xl px-4 py-4 w-full bg-primary text-foreground hover:bg-primary-hover transition-colors')}>
+                            <IconReportAnalytics className='size-5' />
+                            <span>Forensik</span>
                         </Link>
                     )}
                     <Link href='/impressum' className={clsx('gap-2 fixed bottom-2 rounded-2xl px-4 py-4 text-primary-2 hover:bg-primary-hover transition-colors')}>
