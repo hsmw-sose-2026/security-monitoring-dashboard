@@ -68,6 +68,7 @@ def run_all_detectors(context):
     detection_results: dict[str, Any] = {
         "rate_limit": None,
         "bad_upload": None,
+        "honeypot": None,
     }
 
     try:
@@ -80,5 +81,14 @@ def run_all_detectors(context):
     filename = getattr(context, "uploaded_filename", None) or getattr(context, "file_name", None)
     if filename:
         detection_results["bad_upload"] = detect_bad_upload(filename)
+
+    # Honeypot detection
+    try:
+        from app.services.security.detectors.honeypot_detector import detect_honeypot
+
+        path = getattr(context, "path", "")
+        detection_results["honeypot"] = detect_honeypot(path)
+    except Exception:
+        detection_results["honeypot"] = None
 
     return detection_results

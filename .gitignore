@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# wurde nicht hinzugefügt?
+.next/
+node_modules/
+
 # Distribution / packaging
 .Python
 build/

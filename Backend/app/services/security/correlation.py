@@ -1,11 +1,5 @@
 """Correlation rules that turn multiple events into alerts."""
 
-# TODO(Jonas): Mehrere Events zu Alerts zusammenfassen.
-# Ziel: Die bisherige Brute-Force-Regel aus detection.py hierher verschieben und spaeter
-# weitere Alert-Regeln ergaenzen, z.B. Rate-Limit-Alert.
-# Fertig, wenn bei mehr als 5 fehlgeschlagenen Logins pro IP in 1 Minute ein critical Alert entsteht.
-
-
 from datetime import datetime, timedelta, timezone
 from sqlmodel import Session, select
 
@@ -15,6 +9,9 @@ from app.models import SecurityEvent, Alert
 
 BRUTE_FORCE_WINDOW = 60        # Sekunden: Zeitfenster fuer Brute-Force-Erkennung
 BRUTE_FORCE_THRESHOLD = 5       # Failed login Anzahl um als Bruteforce zu gelten
+
+HONEYPOT_WINDOW = 300          # Sekunden: Zeitfenster für Honeypot-Erkennung
+HONEYPOT_THRESHOLD = 2         # Anzahl Honeypot-Treffer um als Reconnaissance zu gelten
 
 PATH_TRAVERSAL_WINDOW = 300    # Sekunden: Zeitfenster für Path-Traversal-Erkennung
 PATH_TRAVERSAL_THRESHOLD = 3    # Anzahl Path-Traversal-Versuche um als Attack zu gelten
@@ -110,10 +107,62 @@ def detect_xss_alert(session: Session, source_ip: str) -> dict | None:
     return None
 
 
-# Neue Regel dazu = Funktion schreiben und hier eintragen.
-# (Jannis) heißt wenn du neue Dinge wie rate limit erstellst einfach hier eintragen
+def detect_multi_vector_alert(session: Session, source_ip: str) -> dict | None:
+    """Erkennt mehrere unterschiedliche Angriffsarten von derselben IP im Zeitfenster."""
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=15)
+    statement = select(SecurityEvent).where(
+        SecurityEvent.source_ip == source_ip,
+        SecurityEvent.timestamp >= cutoff,
+        SecurityEvent.event_type != "failed_login",
+    )
+    events = session.exec(statement).all()
+
+    distinct_types = sorted({event.event_type for event in events if event.event_type})
+    if len(distinct_types) >= 2:
+        details = ", ".join(distinct_types)
+        return {
+            "alert_type": "multi_vector",
+            "severity": "high",
+            "source_ip": source_ip,
+            "message": (
+                f"Multi-Vector-Angriff von {source_ip}: mehrere Events ({details}) in 15 Minuten."
+            ),
+        }
+    return None
+
+
+def detect_honeypot_alert(session: Session, source_ip: str) -> dict | None:
+    """Detects reconnaissance attempts through honeypot endpoint access.
+    
+    Multiple honeypot hits from the same IP in short time window indicate
+    automated scanning/reconnaissance, not accidental discovery.
+    """
+    cutoff = datetime.now(timezone.utc) - timedelta(seconds=HONEYPOT_WINDOW)
+    statement = select(SecurityEvent).where(
+        SecurityEvent.source_ip == source_ip,
+        SecurityEvent.event_type == "honeypot_triggered",
+        SecurityEvent.timestamp >= cutoff,
+    )
+    hits = session.exec(statement).all()
+
+    if len(hits) > HONEYPOT_THRESHOLD:
+        # Honeypot Zugriffswege
+        paths = [event.path for event in hits[:5]]  # ersten 5 Versuche
+        details = ", ".join(paths)
+        return {
+            "alert_type": "reconnaissance",
+            "severity": "critical",
+            "source_ip": source_ip,
+            "message": f"Reconnaissance attempt by {source_ip}: {len(hits)} honeypot hits in {HONEYPOT_WINDOW}s. Paths: {details}",
+        }
+    return None
+
+
+
 CORRELATION_RULES = [
     detect_brute_force,
+    detect_multi_vector_alert,
+    detect_honeypot_alert,
     detect_path_traversal_alert,
     detect_rate_limit_alert,
     detect_xss_alert,

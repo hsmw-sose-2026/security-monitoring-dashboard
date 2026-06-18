@@ -1,7 +1,5 @@
 """Central place to include API routers after the modular split."""
 
-# TODO(Jonas/Tim): Zentrale Router-Registrierung vorbereiten.
-
 from fastapi import FastAPI
 
 from app.routes import auth as auth_routes
@@ -16,6 +14,3 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(contact_routes.router)
     app.include_router(search_routes.router)
     app.include_router(upload_routes.router)
-
-
-# Router hier zentral registrieren, sobald die Module stabil genug fuer integration-test sind.

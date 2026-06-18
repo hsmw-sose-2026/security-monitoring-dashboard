@@ -9,91 +9,93 @@ from sqlmodel import Session
 from app.database import engine
 from app.models import SecurityEvent
 from app.services.detection import correlate
-
-# Import Detektor-Registry ==========================
 from app.services.security.registry import run_all_detectors
-# ===================================================
+from app.services.security.request_context import build_context
+from app.services.security.rule_loader import get_rules
+from app.services.security.detectors.pattern_detector import run_pattern_detection
+
 
 def log_security_event(event_type: str, source_ip: str, path: str, detail: str, severity: str):
     # speichert Event in DB
     with Session(engine) as session:
         event = SecurityEvent(
-            event_type = event_type,
-            source_ip = source_ip,
-            path = path,
-            detail = detail,
-            severity = severity,
-         )
+            event_type=event_type,
+            source_ip=source_ip,
+            path=path,
+            detail=detail,
+            severity=severity,
+        )
         session.add(event)
         session.commit()
         correlate(session, event.source_ip)
 
+
 async def security_middleware(request: Request, call_next):
     # wird von FastAPI bei jedem Request aufgerufen und checkt Request nach Angriffsmuster
-    source_ip = request.client.host if request.client else "unknown"
     path = request.url.path
+    context = await build_context(request)
 
-    # Context für Detektoren ========================================
-    class SimpleRequestContext:
-        def __init__(self, req):
-            self.path = req.url.path
-            self.query = req.url.query
-            self.url = str(req.url)
-            self.client_ip = source_ip
-
-    context = SimpleRequestContext(request)
-
-    # Alle Detektoren über Registry aufrufen ========================
+    # Alle Spezialdetektoren über Registry aufrufen ====================
     detection_results = run_all_detectors(context)
     # ===============================================================
 
-    # SQL Injection
-    if detection_results["sql_injection"]:
-        sql_hit = detection_results["sql_injection"]
-        print(f"[Middleware] SQL-Injection in URL erkannt: {sql_hit}")
+    # JSON-basierte Pattern-Erkennung für SQLi, XSS und Path Traversal
+    pattern_events: dict[str, dict] = {}
+
+    for rule_name in ("sqli", "xss", "path_traversal"):
+        rules = get_rules(rule_name)
+        findings = run_pattern_detection(rules, context)
+        if not findings:
+            continue
+
+        first_finding = findings[0]
+        pattern_events[first_finding["event_type"]] = first_finding
+
+    if "sql_injection" in pattern_events:
+        finding = pattern_events["sql_injection"]
         log_security_event(
-            event_type = "sql_injection",
-            source_ip = source_ip,
-            path = path,
-            detail = f"Muster '{sql_hit}' in URL erkannt",
-            severity = "high",
+            event_type="sql_injection",
+            source_ip=context.source_ip,
+            path=path,
+            detail=f"Muster '{finding['name']}' in {finding['where']} erkannt: {finding['matched_text']}",
+            severity=finding["severity"],
         )
 
-    # Path Traversal
-    if detection_results["path_traversal"]:
-        path_traversal_hit = detection_results["path_traversal"]
-        print(f"[Middleware] Path Traversal in URL erkannt: {path_traversal_hit}")
+    if "path_traversal" in pattern_events:
+        finding = pattern_events["path_traversal"]
         log_security_event(
-            event_type = "path_traversal",
-            source_ip = source_ip,
-            path = path,
-            detail = f"Muster '{path_traversal_hit}' in URL erkannt",
-            severity = "high",
+            event_type="path_traversal",
+            source_ip=context.source_ip,
+            path=path,
+            detail=f"Pattern '{finding['name']}' in {finding['where']} erkannt: {finding['matched_text']}",
+            severity=finding["severity"],
         )
 
-    # XSS
-    if detection_results["xss"]:
-        xss_hit = detection_results["xss"]
-        print(f"[Middleware] XSS in URL erkannt: {xss_hit}")
+    if "xss" in pattern_events:
+        finding = pattern_events["xss"]
         log_security_event(
-            event_type = "xss",
-            source_ip = source_ip,
-            path = path,
-            detail = f"Muster '{xss_hit}' in URL erkannt",
-            severity = "medium",
+            event_type="xss",
+            source_ip=context.source_ip,
+            path=path,
+            detail=f"Pattern '{finding['name']}' in {finding['where']} erkannt: {finding['matched_text']}",
+            severity=finding["severity"],
         )
 
-    # Rate Limit
-    if detection_results["rate_limit"]:
-        rate_limit_hit = detection_results["rate_limit"]
-        print(f"[Middleware] Rate Limit überschritten: {rate_limit_hit['count']} Requests")
+    # Honeypot-Detection
+    if detection_results.get("honeypot"):
+        finding = detection_results["honeypot"]
         log_security_event(
-            event_type = "rate_limit",
-            source_ip = source_ip,
-            path = path,
-            detail = f"{rate_limit_hit['count']} Requests in {rate_limit_hit['window']}s (Limit: {rate_limit_hit['threshold']})",
-            severity = "medium",
+            event_type=finding["event_type"],
+            source_ip=context.source_ip,
+            path=path,
+            detail=f"Honeypot endpoint accessed: {finding['path']}",
+            severity=finding["severity"],
         )
+    # Honeypot requests werden nicht geblock, werden nur gespeichert.
+    # Anfrage läuft normal weiter -> 404
+
+    # Der Rate-Limit-Detektor loggt bei Trigger bereits selbst ein Event.
+    # Hier lassen wir das Ergebnis nur zur möglichen Erweiterung übrig.
 
     response = await call_next(request)
     return response

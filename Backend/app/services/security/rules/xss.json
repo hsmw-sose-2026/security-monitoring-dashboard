@@ -1,16 +1,59 @@
 {
   "event_type": "xss",
+  "enabled": true,
   "severity": "medium",
   "patterns": [
-    "<script",
-    "javascript:",
-    "onerror=",
-    "onload=",
-    "alert\\(",
-    "eval\\(",
-    "document\\.cookie",
-    "fromCharCode",
-    "%3Cscript",
-    "&#x3C;script"
+    {
+      "name": "xss_script_tag",
+      "regex": "<script",
+      "description": "Direkter Script-Tag-Versuch"
+    },
+    {
+      "name": "xss_javascript_protocol",
+      "regex": "javascript:",
+      "description": "JavaScript-URI-Schema in Links oder Attributen"
+    },
+    {
+      "name": "xss_onerror",
+      "regex": "onerror=",
+      "description": "onerror-Event-Handler zur Code-Ausführung"
+    },
+    {
+      "name": "xss_onload",
+      "regex": "onload=",
+      "description": "onload-Event-Handler zur Code-Ausführung"
+    },
+    {
+      "name": "xss_alert",
+      "regex": "alert\\(",
+      "description": "alert()-Aufruf, typisch für XSS-Proof-of-Concepts"
+    },
+    {
+      "name": "xss_eval",
+      "regex": "eval\\(",
+      "description": "eval()-Aufruf zur dynamischen Code-Ausführung"
+    },
+    {
+      "name": "xss_document_cookie",
+      "regex": "document\\.cookie",
+      "description": "Zugriff auf document.cookie, typisch für Session-Diebstahl"    
+    },
+    {
+      "name": "xss_from_char_code",
+      "regex": "fromCharCode",
+      "description": "String.fromCharCode zur Obfuskation von XSS-Payloads"
+    },
+    {
+      "name": "xss_encoded_script",
+      "regex": "%3Cscript",
+      "description": "URL-kodierter Script-Tag (Umgehungsversuch)"
+    },
+    {
+      "name": "xss_html_entity_script",
+      "regex": "&#x3C;script",
+      "description": "HTML-Entity-kodierter Script-Tag (Umgehungsversuch)"
+    }
+
   ]
 }
+ 
