@@ -1,12 +1,15 @@
 'use client';
 
+import {IconRefresh} from '@tabler/icons-react';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {toast} from 'sonner';
 import {getBackendHost} from '@/actions/getBackendHost';
 import {AlertRow} from '@/components/dashboard/alert-row';
 import {DateInput, TimeInput} from '@/components/dashboard/datetime-input';
 import {Button} from '@/components/ui/button';
+import {Checkbox} from '@/components/ui/checkbox';
 import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {filterAlerts, getAuthHeaders, getUniqueOf} from '@/lib/dashboard';
 import type {Alert} from '@/types/dashboard';
@@ -31,6 +34,7 @@ export default function Alerts() {
     );
 
     const [fetchFailed, setFetchFailed] = useState(false);
+    const [lastFetched, setLastFetched] = useState<Date | null>(null);
     const didFetch = useRef(false);
 
     const fetchAlerts = useCallback(async () => {
@@ -44,6 +48,7 @@ export default function Alerts() {
             const data = (await response.json()) as Alert[];
             setAlerts([...data]);
             setFetchFailed(false);
+            setLastFetched(new Date());
             toast.success('Alerts erfolgreich geladen.', {id: loading});
         } catch (_error) {
             setFetchFailed(true);
@@ -57,9 +62,28 @@ export default function Alerts() {
         fetchAlerts();
     }, [fetchAlerts]);
 
+    const [autoRefetch, setAutoRefetch] = useState(false);
+
+    useEffect(() => {
+        if (autoRefetch) {
+            const interval = setInterval(fetchAlerts, 20000);
+            return () => clearInterval(interval);
+        }
+    }, [autoRefetch, fetchAlerts]);
+
     return (
-        <main className='w-full bg-neutral-900 flex flex-col items-center pt-24 gap-4'>
-            <h1 className='text-3xl font-bold mb-8'>Alerts</h1>
+        <main className='w-full bg-neutral-900 flex flex-col items-center pt-24 gap-8'>
+            <h1 className='text-3xl font-bold'>Alerts</h1>
+            <div className='flex gap-2 items-center'>
+                <span>Zuletzt aktualisiert: {lastFetched ? lastFetched?.toLocaleString('de-DE', {dateStyle: 'medium', timeStyle: 'medium'}) : '-'}</span>
+                <Button onClick={fetchAlerts} variant='outline' size='icon'>
+                    <IconRefresh />
+                </Button>
+                <div className='flex gap-2 ml-4'>
+                    <Checkbox id='autorefetch' checked={autoRefetch} onCheckedChange={setAutoRefetch} />
+                    <Label htmlFor='autorefetch'>Alle 20 Sekunden aktualisieren</Label>
+                </div>
+            </div>
             <div className='flex flex-col items-center gap-4 shrink-0 h-[calc(100vh-4rem)] min-h-0 pb-4'>
                 <div className='flex gap-4 w-7xl'>
                     <div className='flex items-center'>

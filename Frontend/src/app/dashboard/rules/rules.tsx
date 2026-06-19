@@ -1,11 +1,11 @@
 'use client';
 
-import { IconSquarePlus, IconNewSection, IconEdit, IconTrash ,IconChevronDown, IconChevronRight } from '@tabler/icons-react';
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import {IconChevronDown, IconChevronRight, IconEdit, IconNewSection, IconSquarePlus, IconTrash} from '@tabler/icons-react';
 import Link from 'next/link';
-import { toast } from 'sonner';
-import { getBackendHost } from '@/actions/getBackendHost';
-import { getAuthHeaders } from '@/lib/dashboard';
+import {Fragment, useCallback, useEffect, useState} from 'react';
+import {toast} from 'sonner';
+import {getBackendHost} from '@/actions/getBackendHost';
+import {getAuthHeaders} from '@/lib/dashboard';
 import ModalAddClass from '../components/ModalAddClass';
 import ModalAddRule from '../components/ModalAddRule';
 import ModalEdit from '../components/ModalEdit';
@@ -39,18 +39,14 @@ interface Selection {
 
 // ─── Severity Badge ───────────────────────────────────────────────────────────
 
-function SeverityBadge({ severity }: { severity: Rule['severity'] }) {
+function SeverityBadge({severity}: {severity: Rule['severity']}) {
     const styles: Record<Rule['severity'], string> = {
         critical: 'bg-purple-900/60 text-purple-400',
-        high:     'bg-red-900/60 text-red-400',
-        medium:   'bg-amber-900/60 text-amber-400',
-        low:      'bg-blue-900/60 text-blue-400',
+        high: 'bg-red-900/60 text-red-400',
+        medium: 'bg-amber-900/60 text-amber-400',
+        low: 'bg-blue-900/60 text-blue-400',
     };
-    return (
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${styles[severity]}`}>
-            {severity}
-        </span>
-    );
+    return <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${styles[severity]}`}>{severity}</span>;
 }
 
 // ─── Haupt-Komponente ─────────────────────────────────────────────────────────
@@ -58,7 +54,7 @@ function SeverityBadge({ severity }: { severity: Rule['severity'] }) {
 export default function Rules() {
     const [classes, setClasses] = useState<RuleClass[]>([]);
     const [expanded, setExpanded] = useState<number[]>([]);
-    const [selection, setSelection] = useState<Selection>({ classIds: [], ruleIds: [] });
+    const [selection, setSelection] = useState<Selection>({classIds: [], ruleIds: []});
 
     const [isClassModalOpen, setIsClassModalOpen] = useState(false);
     const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
@@ -70,11 +66,11 @@ export default function Rules() {
     const loadRules = useCallback(async () => {
         try {
             const backendHost = await getBackendHost();
-            const res = await fetch(`${backendHost}/rules`, { headers: getAuthHeaders() });
+            const res = await fetch(`${backendHost}/rules`, {headers: getAuthHeaders()});
             if (!res.ok) throw new Error(`Fehler ${res.status}`);
             const data: RuleClass[] = await res.json();
             setClasses(data);
-            setExpanded(data.map(c => c.id));
+            setExpanded(data.map((c) => c.id));
         } catch (err: unknown) {
             toast.error('Regeln konnten nicht geladen werden: ' + (err instanceof Error ? err.message : String(err)));
         }
@@ -86,56 +82,56 @@ export default function Rules() {
 
     // ── Accordion ─────────────────────────────────────────────────────────────
 
-    const toggleExpanded = (id: number) =>
-        setExpanded(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    const toggleExpanded = (id: number) => setExpanded((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
     // ── Selektion ─────────────────────────────────────────────────────────────
 
     const isClassSelected = (classId: number) => selection.classIds.includes(classId);
-    const isRuleSelected  = (ruleId: number)  => selection.ruleIds.includes(ruleId);
+    const isRuleSelected = (ruleId: number) => selection.ruleIds.includes(ruleId);
 
     const toggleClass = (cls: RuleClass) => {
         if (isClassSelected(cls.id)) {
             // Klasse und alle ihre Regeln abwählen
-            setSelection(prev => ({
-                classIds: prev.classIds.filter(id => id !== cls.id),
-                ruleIds:  prev.ruleIds.filter(id => !cls.rules.some(r => r.id === id)),
+            setSelection((prev) => ({
+                classIds: prev.classIds.filter((id) => id !== cls.id),
+                ruleIds: prev.ruleIds.filter((id) => !cls.rules.some((r) => r.id === id)),
             }));
         } else {
             // Klasse und alle ihre Regeln auswählen
-            setSelection(prev => ({
+            setSelection((prev) => ({
                 classIds: [...prev.classIds, cls.id],
-                ruleIds:  [...new Set([...prev.ruleIds, ...cls.rules.map(r => r.id)])],
+                ruleIds: [...new Set([...prev.ruleIds, ...cls.rules.map((r) => r.id)])],
             }));
         }
     };
 
     const toggleRule = (cls: RuleClass, ruleId: number) => {
         if (isRuleSelected(ruleId)) {
-            const newRuleIds = selection.ruleIds.filter(id => id !== ruleId);
+            const newRuleIds = selection.ruleIds.filter((id) => id !== ruleId);
             // Wenn keine Regel der Klasse mehr ausgewählt → Klasse abwählen
-            const anyLeft = cls.rules.some(r => r.id !== ruleId && newRuleIds.includes(r.id));
-            setSelection(prev => ({
-                classIds: anyLeft ? prev.classIds : prev.classIds.filter(id => id !== cls.id),
+            const anyLeft = cls.rules.some((r) => r.id !== ruleId && newRuleIds.includes(r.id));
+            setSelection((prev) => ({
+                classIds: anyLeft ? prev.classIds : prev.classIds.filter((id) => id !== cls.id),
                 ruleIds: newRuleIds,
             }));
         } else {
             const newRuleIds = [...selection.ruleIds, ruleId];
             // Einzelne Regeln bleiben einzeln editierbar. Eine Klasse wird nur
             // markiert, wenn die Klassen-Checkbox direkt genutzt wird.
-            setSelection(prev => ({
-                classIds: prev.classIds.filter(id => id !== cls.id),
+            setSelection((prev) => ({
+                classIds: prev.classIds.filter((id) => id !== cls.id),
                 ruleIds: newRuleIds,
             }));
         }
     };
 
-    const selectAll = () => setSelection({
-        classIds: classes.map(c => c.id),
-        ruleIds:  classes.flatMap(c => c.rules.map(r => r.id)),
-    });
+    const selectAll = () =>
+        setSelection({
+            classIds: classes.map((c) => c.id),
+            ruleIds: classes.flatMap((c) => c.rules.map((r) => r.id)),
+        });
 
-    const deselectAll = () => setSelection({ classIds: [], ruleIds: [] });
+    const deselectAll = () => setSelection({classIds: [], ruleIds: []});
 
     const totalSelected = selection.classIds.length + selection.ruleIds.length;
 
@@ -148,7 +144,7 @@ export default function Rules() {
             return;
         }
         const ruleId = selection.ruleIds[0];
-        const rule = classes.flatMap(c => c.rules).find(r => r.id === ruleId) ?? null;
+        const rule = classes.flatMap((c) => c.rules).find((r) => r.id === ruleId) ?? null;
         setEditingRule(rule);
         setIsEditModalOpen(true);
     };
@@ -181,7 +177,7 @@ export default function Rules() {
                 if (!res.ok) throw new Error(`Klasse ${classId}: Fehler ${res.status}`);
             }
 
-            setSelection({ classIds: [], ruleIds: [] });
+            setSelection({classIds: [], ruleIds: []});
             await loadRules();
             toast.success('Erfolgreich gelöscht.');
         } catch (err: unknown) {
@@ -192,19 +188,19 @@ export default function Rules() {
     // ── Modal-Callbacks ───────────────────────────────────────────────────────
 
     const handleClassCreated = (cls: RuleClass) => {
-        setSelection({ classIds: [], ruleIds: [] });
+        setSelection({classIds: [], ruleIds: []});
         void loadRules();
         toast.success(`Klasse „${cls.name}" angelegt.`);
     };
 
     const handleRuleCreated = (classId: number, rule: Rule) => {
-        setSelection({ classIds: [], ruleIds: [] });
+        setSelection({classIds: [], ruleIds: []});
         void loadRules();
         toast.success(`Regel „${rule.name}" angelegt.`);
     };
 
     const handleRuleUpdated = (updated: Rule) => {
-        setSelection({ classIds: [], ruleIds: [] });
+        setSelection({classIds: [], ruleIds: []});
         void loadRules();
         toast.success(`Regel „${updated.name}" aktualisiert.`);
     };
@@ -213,188 +209,175 @@ export default function Rules() {
 
     return (
         <>
-        <div className='w-full min-h-screen bg-neutral-900 flex flex-col pt-24 gap-4 pb-8'>
+            <div className='w-full min-h-screen bg-neutral-900 flex flex-col pt-24 gap-4 pb-8'>
+                {/* Header */}
+                <div className='ml-2 mr-2 p-4 rounded-lg'>
+                    <h1 className='text-3xl font-bold mb-3 text-white'>Regel Verwaltung</h1>
+                    <p className='text-gray-300'>Regeln sind in Klassen gruppiert. Klappen Sie eine Klasse auf, um die zugehörigen Regeln zu sehen.</p>
+                </div>
 
-            {/* Header */}
-            <div className='ml-2 mr-2 p-4 rounded-lg'>
-                <h1 className='text-3xl font-bold mb-3 text-white'>Regel Verwaltung</h1>
-                <p className='text-gray-300'>Regeln sind in Klassen gruppiert. Klappen Sie eine Klasse auf, um die zugehörigen Regeln zu sehen.</p>
-            </div>
+                {/* Aktionsleiste */}
+                <div className='flex gap-2 ml-2 mr-2 flex-wrap items-center'>
+                    <button
+                        onClick={() => setIsClassModalOpen(true)}
+                        className='flex items-center gap-1 bg-neutral-800 text-white hover:bg-lime-900/60 hover:text-lime-400 py-1.5 px-3 rounded-lg transition-colors text-xs font-medium'
+                    >
+                        <IconSquarePlus className='size-4' />
+                        Neue Klasse
+                    </button>
+                    <button
+                        onClick={() => setIsRuleModalOpen(true)}
+                        disabled={classes.length === 0}
+                        className='flex items-center gap-1 bg-neutral-800 text-white hover:bg-green-900/60 hover:text-green-400 disabled:opacity-40 disabled:cursor-not-allowed py-1.5 px-3 rounded-lg transition-colors text-xs font-medium'
+                    >
+                        <IconNewSection className='size-4' />
+                        Neue Regel
+                    </button>
 
-            {/* Aktionsleiste */}
-            <div className='flex gap-2 ml-2 mr-2 flex-wrap items-center'>
-                <button
-                    onClick={() => setIsClassModalOpen(true)}
-                    className='flex items-center gap-1 bg-neutral-800 text-white hover:bg-lime-900/60 hover:text-lime-400 py-1.5 px-3 rounded-lg transition-colors text-xs font-medium'>
-                    <IconSquarePlus className='size-4' />
-                    Neue Klasse
-                </button>
-                <button
-                    onClick={() => setIsRuleModalOpen(true)}
-                    disabled={classes.length === 0}
-                    className='flex items-center gap-1 bg-neutral-800 text-white hover:bg-green-900/60 hover:text-green-400 disabled:opacity-40 disabled:cursor-not-allowed py-1.5 px-3 rounded-lg transition-colors text-xs font-medium'>
-                    <IconNewSection className='size-4' />
-                    Neue Regel
-                </button>
+                    <div className='w-px h-5 bg-neutral-700 mx-1' />
 
-                <div className='w-px h-5 bg-neutral-700 mx-1' />
+                    <button
+                        onClick={openEdit}
+                        disabled={selection.ruleIds.length !== 1 || selection.classIds.length > 0}
+                        className='flex items-center gap-1 bg-neutral-800 text-white hover:bg-blue-900/60 hover:text-blue-400 disabled:opacity-40 disabled:cursor-not-allowed py-1.5 px-3 rounded-lg transition-colors text-xs font-medium'
+                    >
+                        <IconEdit className='size-4' />
+                        Bearbeiten
+                    </button>
+                    <button
+                        onClick={handleDelete}
+                        disabled={totalSelected === 0}
+                        className='flex items-center gap-1 bg-neutral-800 text-white hover:bg-red-900/60 hover:text-red-400 disabled:opacity-40 disabled:cursor-not-allowed py-1.5 px-3 rounded-lg transition-colors text-xs font-medium'
+                    >
+                        <IconTrash className='size-4' />
+                        Löschen {totalSelected > 0 && `(${totalSelected})`}
+                    </button>
 
-                <button
-                    onClick={openEdit}
-                    disabled={selection.ruleIds.length !== 1 || selection.classIds.length > 0}
-                    className='flex items-center gap-1 bg-neutral-800 text-white hover:bg-blue-900/60 hover:text-blue-400 disabled:opacity-40 disabled:cursor-not-allowed py-1.5 px-3 rounded-lg transition-colors text-xs font-medium'>
-                    <IconEdit className='size-4' />
-                    Bearbeiten
-                </button>
-                <button
-                    onClick={handleDelete}
-                    disabled={totalSelected === 0}
-                    className='flex items-center gap-1 bg-neutral-800 text-white hover:bg-red-900/60 hover:text-red-400 disabled:opacity-40 disabled:cursor-not-allowed py-1.5 px-3 rounded-lg transition-colors text-xs font-medium'>
-                    <IconTrash className='size-4' />
-                    Löschen {totalSelected > 0 && `(${totalSelected})`}
-                </button>
+                    <div className='w-px h-5 bg-neutral-700 mx-1' />
 
-                <div className='w-px h-5 bg-neutral-700 mx-1' />
+                    <button onClick={selectAll} className='bg-neutral-800 hover:bg-neutral-700 text-white py-1.5 px-3 rounded-lg transition-colors text-xs'>
+                        Alle auswählen
+                    </button>
+                    <button onClick={deselectAll} className='bg-neutral-800 hover:bg-neutral-700 text-white py-1.5 px-3 rounded-lg transition-colors text-xs'>
+                        Auswahl aufheben
+                    </button>
+                </div>
 
-                <button onClick={selectAll}
-                    className='bg-neutral-800 hover:bg-neutral-700 text-white py-1.5 px-3 rounded-lg transition-colors text-xs'>
-                    Alle auswählen
-                </button>
-                <button onClick={deselectAll}
-                    className='bg-neutral-800 hover:bg-neutral-700 text-white py-1.5 px-3 rounded-lg transition-colors text-xs'>
-                    Auswahl aufheben
-                </button>
-            </div>
-
-            {/* Tabelle */}
-            <div className='ml-2 mr-2 border border-neutral-700 rounded-2xl overflow-auto'>
-                <table className='w-full'>
-                    <thead>
-                        <tr className='divide-x border-b border-neutral-700 *:border-neutral-700 *:text-left *:p-4 *:py-2 *:font-semibold bg-neutral-800'>
-                            <th className='w-10'></th>
-                            <th className='w-8'></th>
-                            <th>Name</th>
-                            <th>Event-Type</th>
-                            <th>Severity</th>
-                            <th>Enabled</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {classes.map(cls => (
-                            <Fragment key={`class-fragment-${cls.id}`}>
-                                {/* Klassen-Zeile */}
-                                <tr
-                                    key={`class-${cls.id}`}
-                                    className='divide-x border-b border-neutral-700 *:border-neutral-700 *:p-4 *:py-3 bg-neutral-800/80 hover:bg-neutral-700/60 transition-colors select-none'
-                                >
-                                    {/* Accordion Toggle */}
-                                    <td className='cursor-pointer' onClick={() => toggleExpanded(cls.id)}>
-                                        {expanded.includes(cls.id)
-                                            ? <IconChevronDown className='size-4 text-gray-400' />
-                                            : <IconChevronRight className='size-4 text-gray-400' />
-                                        }
-                                    </td>
-                                    {/* Klassen-Checkbox */}
-                                    <td>
-                                        <input
-                                            type='checkbox'
-                                            checked={isClassSelected(cls.id)}
-                                            onChange={() => toggleClass(cls)}
-                                            className='accent-blue-400 size-4 cursor-pointer'
-                                        />
-                                    </td>
-                                    <td colSpan={3} className='cursor-pointer' onClick={() => toggleExpanded(cls.id)}>
-                                        <span className='font-bold text-white'>{cls.name}</span>
-                                        {cls.description && (
-                                            <span className='ml-3 text-xs text-gray-400'>{cls.description}</span>
-                                        )}
-                                    </td>
-                                    <td>
-                                        <span className='text-xs text-gray-400 font-mono'>
-                                            {cls.rules.length} Regel{cls.rules.length !== 1 ? 'n' : ''}
-                                        </span>
-                                    </td>
-                                </tr>
-
-                                {/* Regel-Zeilen */}
-                                {expanded.includes(cls.id) && cls.rules.map(rule => (
+                {/* Tabelle */}
+                <div className='ml-2 mr-2 border border-neutral-700 rounded-2xl overflow-auto'>
+                    <table className='w-full'>
+                        <thead>
+                            <tr className='divide-x border-b border-neutral-700 *:border-neutral-700 *:text-left *:p-4 *:py-2 *:font-semibold bg-neutral-800'>
+                                <th className='w-10'></th>
+                                <th className='w-8'></th>
+                                <th>Name</th>
+                                <th>Event-Type</th>
+                                <th>Severity</th>
+                                <th>Enabled</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {classes.map((cls) => (
+                                <Fragment key={`class-fragment-${cls.id}`}>
+                                    {/* Klassen-Zeile */}
                                     <tr
-                                        key={`rule-${rule.id}`}
-                                        className={`divide-x border-b border-neutral-700 *:border-neutral-700 *:p-4 *:py-3 last:border-b-0 transition-colors
-                                            ${isRuleSelected(rule.id) ? 'bg-blue-950/40' : 'hover:bg-neutral-800/50'}`}
+                                        key={`class-${cls.id}`}
+                                        className='divide-x border-b border-neutral-700 *:border-neutral-700 *:p-4 *:py-3 bg-neutral-800/80 hover:bg-neutral-700/60 transition-colors select-none'
                                     >
-                                        <td className='bg-neutral-900/30'></td>
-                                        {/* Regel-Checkbox */}
+                                        {/* Accordion Toggle */}
+                                        <td className='cursor-pointer' onClick={() => toggleExpanded(cls.id)}>
+                                            {expanded.includes(cls.id) ? (
+                                                <IconChevronDown className='size-4 text-gray-400' />
+                                            ) : (
+                                                <IconChevronRight className='size-4 text-gray-400' />
+                                            )}
+                                        </td>
+                                        {/* Klassen-Checkbox */}
                                         <td>
                                             <input
                                                 type='checkbox'
-                                                checked={isRuleSelected(rule.id)}
-                                                onChange={() => toggleRule(cls, rule.id)}
+                                                checked={isClassSelected(cls.id)}
+                                                onChange={() => toggleClass(cls)}
                                                 className='accent-blue-400 size-4 cursor-pointer'
                                             />
                                         </td>
-                                        <td>
-                                            <div className='flex items-center gap-2 pl-4 border-l-2 border-neutral-600'>
-                                                <span className='font-medium text-gray-200'>{rule.name}</span>
-                                                {rule.description && (
-                                                    <span className='text-xs text-gray-500'>{rule.description}</span>
-                                                )}
-                                            </div>
+                                        <td colSpan={3} className='cursor-pointer' onClick={() => toggleExpanded(cls.id)}>
+                                            <span className='font-bold text-white'>{cls.name}</span>
+                                            {cls.description && <span className='ml-3 text-xs text-gray-400'>{cls.description}</span>}
                                         </td>
-                                        <td className='font-mono text-sm text-gray-300'>{rule.eventType}</td>
-                                        <td><SeverityBadge severity={rule.severity} /></td>
                                         <td>
-                                            <input
-                                                type='checkbox'
-                                                checked={rule.enabled}
-                                                readOnly
-                                                className='accent-green-400 size-4 cursor-default'
-                                            />
+                                            <span className='text-xs text-gray-400 font-mono'>
+                                                {cls.rules.length} Regel{cls.rules.length !== 1 ? 'n' : ''}
+                                            </span>
                                         </td>
                                     </tr>
-                                ))}
 
-                                {/* Leere Klasse */}
-                                {expanded.includes(cls.id) && cls.rules.length === 0 && (
-                                    <tr key={`empty-${cls.id}`} className='border-b border-neutral-700'>
-                                        <td colSpan={6} className='p-4 pl-16 text-sm text-gray-500 italic'>
-                                            Keine Regeln in dieser Klasse.
-                                        </td>
-                                    </tr>
-                                )}
-                            </Fragment>
-                        ))}
+                                    {/* Regel-Zeilen */}
+                                    {expanded.includes(cls.id) &&
+                                        cls.rules.map((rule) => (
+                                            <tr
+                                                key={`rule-${rule.id}`}
+                                                className={`divide-x border-b border-neutral-700 *:border-neutral-700 *:p-4 *:py-3 last:border-b-0 transition-colors
+                                            ${isRuleSelected(rule.id) ? 'bg-blue-950/40' : 'hover:bg-neutral-800/50'}`}
+                                            >
+                                                <td className='bg-neutral-900/30'></td>
+                                                {/* Regel-Checkbox */}
+                                                <td>
+                                                    <input
+                                                        type='checkbox'
+                                                        checked={isRuleSelected(rule.id)}
+                                                        onChange={() => toggleRule(cls, rule.id)}
+                                                        className='accent-blue-400 size-4 cursor-pointer'
+                                                    />
+                                                </td>
+                                                <td>
+                                                    <div className='flex items-center gap-2 pl-4 border-l-2 border-neutral-600'>
+                                                        <span className='font-medium text-gray-200'>{rule.name}</span>
+                                                        {rule.description && <span className='text-xs text-gray-500'>{rule.description}</span>}
+                                                    </div>
+                                                </td>
+                                                <td className='font-mono text-sm text-gray-300'>{rule.eventType}</td>
+                                                <td>
+                                                    <SeverityBadge severity={rule.severity} />
+                                                </td>
+                                                <td>
+                                                    <input type='checkbox' checked={rule.enabled} readOnly className='accent-green-400 size-4 cursor-default' />
+                                                </td>
+                                            </tr>
+                                        ))}
 
-                        {classes.length === 0 && (
-                            <tr>
-                                <td colSpan={6} className='p-8 text-center text-gray-500 italic'>
-                                    Noch keine Klassen angelegt.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                                    {/* Leere Klasse */}
+                                    {expanded.includes(cls.id) && cls.rules.length === 0 && (
+                                        <tr key={`empty-${cls.id}`} className='border-b border-neutral-700'>
+                                            <td colSpan={6} className='p-4 pl-16 text-sm text-gray-500 italic'>
+                                                Keine Regeln in dieser Klasse.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </Fragment>
+                            ))}
+
+                            {classes.length === 0 && (
+                                <tr>
+                                    <td colSpan={6} className='p-8 text-center text-gray-500 italic'>
+                                        Noch keine Klassen angelegt.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
 
-        {/* Modals */}
-        <ModalAddClass
-            isOpen={isClassModalOpen}
-            onClose={() => setIsClassModalOpen(false)}
-            onCreated={handleClassCreated}
-        />
-        <ModalAddRule
-            isOpen={isRuleModalOpen}
-            onClose={() => setIsRuleModalOpen(false)}
-            classes={classes.map(c => ({ id: c.id, name: c.name }))}
-            onCreated={handleRuleCreated}
-        />
-        <ModalEdit
-            isOpen={isEditModalOpen}
-            onClose={() => setIsEditModalOpen(false)}
-            rule={editingRule}
-            onUpdated={handleRuleUpdated}
-        />
+            {/* Modals */}
+            <ModalAddClass isOpen={isClassModalOpen} onClose={() => setIsClassModalOpen(false)} onCreated={handleClassCreated} />
+            <ModalAddRule
+                isOpen={isRuleModalOpen}
+                onClose={() => setIsRuleModalOpen(false)}
+                classes={classes.map((c) => ({id: c.id, name: c.name}))}
+                onCreated={handleRuleCreated}
+            />
+            <ModalEdit isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} rule={editingRule} onUpdated={handleRuleUpdated} />
         </>
     );
 }

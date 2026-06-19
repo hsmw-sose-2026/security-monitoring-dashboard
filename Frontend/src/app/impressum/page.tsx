@@ -1,6 +1,4 @@
-import Impressum from "./impressum";    
+import Impressum from './impressum';
 export default function ImpressumPage() {
-    return (
-        <Impressum />
-    );
+    return <Impressum />;
 }

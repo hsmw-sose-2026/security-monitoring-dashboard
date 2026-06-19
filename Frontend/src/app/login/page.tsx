@@ -1,6 +1,4 @@
-import Login from "./loginpage";    
+import Login from './loginpage';
 export default function LoginPage() {
-    return (
-        <Login />
-    );
+    return <Login />;
 }

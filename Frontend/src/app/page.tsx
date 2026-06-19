@@ -1,48 +1,56 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { IconHome, IconCloud, IconLogout, IconSword, IconMoon, IconSun, IconUpload, IconMail, IconBug, IconReportAnalytics } from '@tabler/icons-react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import {IconBug, IconCloud, IconHome, IconLogout, IconMail, IconMoon, IconReportAnalytics, IconSun, IconSword, IconUpload} from '@tabler/icons-react';
 import clsx from 'clsx';
+import Link from 'next/link';
+import {usePathname, useRouter} from 'next/navigation';
+import {useEffect, useState} from 'react';
+import {getBackendHost} from '@/actions/getBackendHost';
+import {useDarkMode} from '@/app/hooks/useDarkMode';
 import SearchBar from '@/components/SearchBar';
-import { useDarkMode } from '@/app/hooks/useDarkMode';
 
 const XSS_DEMO_SEARCH = '<script>alert("XSS")</script>';
 
 export default function Home() {
     const pathname = usePathname();
-    const router = useRouter();                                 // Router für Navigation und Redirects
-    const [isAdmin, setIsAdmin] = useState(false);              // Admin-Status für bedingte Navigationselemente
+    const router = useRouter(); // Router für Navigation und Redirects
+    const [isAdmin, setIsAdmin] = useState(false); // Admin-Status für bedingte Navigationselemente
     const [isLoading, setIsLoading] = useState(true);
-    const { darkMode, toggleDarkMode } = useDarkMode();         // Dark Mode Hook
+    const {darkMode, toggleDarkMode} = useDarkMode(); // Dark Mode Hook
+
+    const [backendHost, setBackendHost] = useState<string | undefined>(undefined);
 
     // Ref/Callback um den SearchBar-Wert von außen zu setzen
     const [searchDemoValue, setSearchDemoValue] = useState<string | undefined>(undefined);
 
     // Überprüfen der Authentifizierung und Rollenstatus beim Laden der Seite
     useEffect(() => {
-        const role = localStorage.getItem("role");
+        const run = async () => {
+            const backendHost = await getBackendHost();
+            setBackendHost(backendHost);
+        };
+        run();
+
+        const role = localStorage.getItem('role');
         if (!role) {
-            router.replace("/login");
+            router.replace('/login');
             return;
         }
-        setIsAdmin(role === "admin");
+        setIsAdmin(role === 'admin');
         setIsLoading(false);
     }, [router]);
 
     if (isLoading) {
         return (
-            <div className="flex h-screen w-screen items-center justify-center bg-background text-foreground">
-                <p className="text-lg font-medium">Prüfe Authentifizierung...</p>
+            <div className='flex h-screen w-screen items-center justify-center bg-background text-foreground'>
+                <p className='text-lg font-medium'>Prüfe Authentifizierung...</p>
             </div>
         );
     }
 
-// -------------------------------------------------------------------------------------------------------------
-// ---------------------------------------------- MAIN PAGE ----------------------------------------------------
-// -------------------------------------------------------------------------------------------------------------    
-
+    // -------------------------------------------------------------------------------------------------------------
+    // ---------------------------------------------- MAIN PAGE ----------------------------------------------------
+    // -------------------------------------------------------------------------------------------------------------
 
     return (
         <>
@@ -60,25 +68,29 @@ export default function Home() {
                             type='button'
                             onClick={() => setSearchDemoValue(XSS_DEMO_SEARCH)}
                             title='XSS-Demo in Suchfeld einfügen'
-                            className='flex items-center gap-1 border border-red-500/40 text-red-400 rounded-full px-3 py-1.5 text-xs hover:bg-red-500/10 transition-colors min-w-max'>
+                            className='flex items-center gap-1 border border-red-500/40 text-red-400 rounded-full px-3 py-1.5 text-xs hover:bg-red-500/10 transition-colors min-w-max'
+                        >
                             <IconBug className='size-3.5' />
                             XSS-Demo
                         </button>
                         {/* Dark Mode Toggle */}
-                        <button onClick={toggleDarkMode}
+                        <button
+                            onClick={toggleDarkMode}
                             className='flex items-center justify-center size-9 rounded-full bg-primary-2 text-white hover:bg-primary-3-hover transition-colors'
-                            title={darkMode ? 'Light Mode' : 'Dark Mode'}>
+                            title={darkMode ? 'Light Mode' : 'Dark Mode'}
+                        >
                             {darkMode ? <IconSun className='size-5' /> : <IconMoon className='size-5' />}
                         </button>
                         {/* Logout Button */}
                         <button
                             onClick={() => {
-                                localStorage.removeItem("access_token");
-                                localStorage.removeItem("username");
-                                localStorage.removeItem("role");
-                                router.push("/login");
+                                localStorage.removeItem('access_token');
+                                localStorage.removeItem('username');
+                                localStorage.removeItem('role');
+                                router.push('/login');
                             }}
-                            className='flex items-center gap-2 bg-primary-2 text-white px-4 py-2 rounded-full hover:bg-primary-3-hover transition-colors min-w-max'>
+                            className='flex items-center gap-2 bg-primary-2 text-white px-4 py-2 rounded-full hover:bg-primary-3-hover transition-colors min-w-max'
+                        >
                             <IconLogout className='size-4' />
                             <span className='text-sm font-medium'>Logout</span>
                         </button>
@@ -90,45 +102,74 @@ export default function Home() {
 
             <div className='flex pt-20'>
                 <div className='fixed left-0 top-20 h-screen w-45 bg-card border-r border-border p-3 flex flex-col gap-2 z-40'>
-                    <Link href='/' className={clsx('flex items-center gap-2 rounded-2xl px-4 py-4 w-full text-foreground transition-colors', {
-                        'bg-primary text-foreground-2 hover:bg-primary-2-hover': pathname === '/',
-                        'bg-primary hover:bg-primary-hover': pathname !== '/',
-                    })}>
+                    <Link
+                        href='/'
+                        className={clsx('flex items-center gap-2 rounded-2xl px-4 py-4 w-full text-foreground transition-colors', {
+                            'bg-primary text-foreground-2 hover:bg-primary-2-hover': pathname === '/',
+                            'bg-primary hover:bg-primary-hover': pathname !== '/',
+                        })}
+                    >
                         <IconHome className='size-5' />
                         <span>Startseite</span>
                     </Link>
-                    <Link href='/upload' className={clsx('flex items-center gap-2 rounded-2xl px-4 py-4 w-full text-foreground transition-colors', {
-                        'bg-primary text-foreground-2 hover:bg-primary-2-hover': pathname === '/upload',
-                        'bg-primary hover:bg-primary-hover': pathname !== '/upload',
-                    })}>
+                    <Link
+                        href='/upload'
+                        className={clsx('flex items-center gap-2 rounded-2xl px-4 py-4 w-full text-foreground transition-colors', {
+                            'bg-primary text-foreground-2 hover:bg-primary-2-hover': pathname === '/upload',
+                            'bg-primary hover:bg-primary-hover': pathname !== '/upload',
+                        })}
+                    >
                         <IconUpload className='size-5' />
                         <span>Datei Upload</span>
                     </Link>
-                    <Link href='/contact' className={clsx('flex items-center gap-2 rounded-2xl px-4 py-4 w-full text-foreground transition-colors', {
-                        'bg-primary text-foreground-2 hover:bg-primary-2-hover': pathname === '/contact',
-                        'bg-primary hover:bg-primary-hover': pathname !== '/contact',
-                    })}>
+                    <Link
+                        href='/contact'
+                        className={clsx('flex items-center gap-2 rounded-2xl px-4 py-4 w-full text-foreground transition-colors', {
+                            'bg-primary text-foreground-2 hover:bg-primary-2-hover': pathname === '/contact',
+                            'bg-primary hover:bg-primary-hover': pathname !== '/contact',
+                        })}
+                    >
                         <IconMail className='size-5' />
                         <span>Kontakt</span>
                     </Link>
 
                     {/* Admin Dashboard Link */}
                     {isAdmin && (
-                        <Link href='/dashboard' className={clsx('flex items-center gap-2 rounded-2xl px-4 py-4 w-full bg-primary text-foreground hover:bg-primary-hover transition-colors')}>
+                        <Link
+                            href='/dashboard'
+                            className={clsx(
+                                'flex items-center gap-2 rounded-2xl px-4 py-4 w-full bg-primary text-foreground hover:bg-primary-hover transition-colors',
+                            )}
+                        >
                             <IconSword className='size-5' />
                             <span>Dashboard</span>
                         </Link>
                     )}
                     {isAdmin && (
-                        <Link href='/dashboard/forensic' className={clsx('flex items-center gap-2 rounded-2xl px-4 py-4 w-full bg-primary text-foreground hover:bg-primary-hover transition-colors')}>
+                        <Link
+                            href='/dashboard/forensic'
+                            className={clsx(
+                                'flex items-center gap-2 rounded-2xl px-4 py-4 w-full bg-primary text-foreground hover:bg-primary-hover transition-colors',
+                            )}
+                        >
                             <IconReportAnalytics className='size-5' />
                             <span>Forensik</span>
                         </Link>
                     )}
 
-                    <Link href='/impressum' className={clsx('gap-2 fixed bottom-2 rounded-2xl px-4 py-4 text-primary-2 hover:bg-primary-hover transition-colors')}>
+                    <Link
+                        href='/impressum'
+                        className={clsx('gap-2 fixed bottom-2 rounded-2xl px-4 py-4 text-primary-2 hover:bg-primary-hover transition-colors')}
+                    >
                         <span>Impressum</span>
                     </Link>
+
+                    <a className='hidden!' aria-hidden='true' tabIndex={-1} href={`${backendHost}/.env`}></a>
+                    <a className='hidden!' aria-hidden='true' tabIndex={-1} href={`${backendHost}/wp-admin`}></a>
+                    <a className='hidden!' aria-hidden='true' tabIndex={-1} href={`${backendHost}/.git/config`}></a>
+                    <a className='hidden!' aria-hidden='true' tabIndex={-1} href={`${backendHost}/admin/backup.sql`}></a>
+                    <a className='hidden!' aria-hidden='true' tabIndex={-1} href={`${backendHost}/phpmyadmin`}></a>
+                    <a className='hidden!' aria-hidden='true' tabIndex={-1} href={`${backendHost}/requirements.txt`}></a>
                 </div>
 
                 {/* Main Content -------------------------------------------------------------------*/}
@@ -156,7 +197,13 @@ export default function Home() {
                             <li>Dienstleistung 2: Beschreibung der zweiten Dienstleistung</li>
                             <li>Dienstleistung 3: Beschreibung der dritten Dienstleistung</li>
                         </ul>
-                        <p className='text-lg mt-4'>Wenn weitere Fragen bestehen sollten, kontaktieren Sie uns bitte <Link href='/contact' className='text-primary hover:underline'>hier</Link>.</p>
+                        <p className='text-lg mt-4'>
+                            Wenn weitere Fragen bestehen sollten, kontaktieren Sie uns bitte{' '}
+                            <Link href='/contact' className='text-primary hover:underline'>
+                                hier
+                            </Link>
+                            .
+                        </p>
                     </article>
                 </div>
             </div>

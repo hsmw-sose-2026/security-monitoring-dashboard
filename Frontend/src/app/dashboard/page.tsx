@@ -1,12 +1,15 @@
 'use client';
 
+import {IconRefresh, IconReload} from '@tabler/icons-react';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {toast} from 'sonner';
 import {getBackendHost} from '@/actions/getBackendHost';
 import {AttackRow} from '@/components/dashboard/attack-row';
 import {DateInput, TimeInput} from '@/components/dashboard/datetime-input';
 import {Button} from '@/components/ui/button';
+import {Checkbox} from '@/components/ui/checkbox';
 import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {filterAttacks, getAuthHeaders, getUniqueOf} from '@/lib/dashboard';
 import type {Attack} from '@/types/dashboard';
@@ -30,6 +33,7 @@ export default function Dashboard() {
     );
 
     const [fetchFailed, setFetchFailed] = useState(false);
+    const [lastFetched, setLastFetched] = useState<Date | null>(null);
     const didFetch = useRef(false);
 
     const fetchAttacks = useCallback(async () => {
@@ -43,6 +47,7 @@ export default function Dashboard() {
             const data = (await response.json()) as Attack[];
             setAttacks([...data]);
             setFetchFailed(false);
+            setLastFetched(new Date());
             toast.success('Attacks erfolgreich geladen.', {id: loading});
         } catch (_error) {
             setFetchFailed(true);
@@ -56,9 +61,28 @@ export default function Dashboard() {
         fetchAttacks();
     }, [fetchAttacks]);
 
+    const [autoRefetch, setAutoRefetch] = useState(false);
+
+    useEffect(() => {
+        if (autoRefetch) {
+            const interval = setInterval(fetchAttacks, 20000);
+            return () => clearInterval(interval);
+        }
+    }, [autoRefetch, fetchAttacks]);
+
     return (
-        <main className='w-full bg-neutral-900 flex flex-col items-center pt-24 gap-4'>
-            <h1 className='text-3xl font-bold mb-8'>Attacks</h1>
+        <main className='w-full bg-neutral-900 flex flex-col items-center pt-24 gap-8'>
+            <h1 className='text-3xl font-bold'>Attacks</h1>
+            <div className='flex gap-2 items-center'>
+                <span>Zuletzt aktualisiert: {lastFetched ? lastFetched?.toLocaleString('de-DE', {dateStyle: 'medium', timeStyle: 'medium'}) : '-'}</span>
+                <Button onClick={fetchAttacks} variant='outline' size='icon'>
+                    <IconRefresh />
+                </Button>
+                <div className='flex gap-2 ml-4'>
+                    <Checkbox id='autorefetch' checked={autoRefetch} onCheckedChange={setAutoRefetch} />
+                    <Label htmlFor='autorefetch'>Alle 20 Sekunden aktualisieren</Label>
+                </div>
+            </div>
             <div className='flex flex-col items-center gap-4 shrink-0 h-[calc(100vh-4rem)] min-h-0 pb-4'>
                 <div className='flex gap-4'>
                     <div className='flex items-center'>

@@ -1,7 +1,7 @@
-import type { Metadata } from 'next';
-import { Geist, JetBrains_Mono } from 'next/font/google';
-import { Toaster } from '@/components/ui/sonner';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import type {Metadata} from 'next';
+import {Geist, JetBrains_Mono} from 'next/font/google';
+import {Toaster} from '@/components/ui/sonner';
+import {TooltipProvider} from '@/components/ui/tooltip';
 import './globals.css';
 
 const geistSans = Geist({
@@ -28,7 +28,7 @@ export default function RootLayout({
         <html lang='de' className={`${geistSans.variable} ${jbMono.variable} font-sans h-full antialiased bg-background text-foreground`}>
             <body className='min-h-full flex flex-col'>
                 <Toaster
-                    position='top-center'
+                    position='top-right'
                     duration={5000}
                     richColors
                     closeButton

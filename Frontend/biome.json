@@ -42,7 +42,7 @@
                 "noUnreachable": "off",
                 "noUnreachableSuper": "off",
                 "noUnusedVariables": "error",
-                "useExhaustiveDependencies": "off",
+                "useExhaustiveDependencies": "warn",
                 "useHookAtTopLevel": "error",
                 "useJsxKeyInIterable": "error"
             },

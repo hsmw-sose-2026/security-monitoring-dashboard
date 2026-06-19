@@ -1,7 +1,5 @@
-import Search from "./searchpage";
+import Search from './searchpage';
 
 export default function SearchPage() {
-    return (
-        <Search />
-    );
+    return <Search />;
 }

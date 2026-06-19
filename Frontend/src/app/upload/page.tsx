@@ -1,6 +1,4 @@
-import Upload from "./uploadpage";    
+import Upload from './uploadpage';
 export default function UploadPage() {
-    return (
-        <Upload />
-    );
+    return <Upload />;
 }

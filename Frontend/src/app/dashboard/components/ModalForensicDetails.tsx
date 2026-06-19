@@ -1,9 +1,9 @@
 'use client';
 
-import { IconX, IconCheck, IconArrowDown } from '@tabler/icons-react';
-import { useState } from 'react';
-import type { ForensicEvent } from '../forensic/ForensicEvent';
-import { SeverityBadge, MlLabelBadge } from '../forensic/ForensicEvent';
+import {IconArrowDown, IconCheck, IconX} from '@tabler/icons-react';
+import {useState} from 'react';
+import type {ForensicEvent} from '../forensic/ForensicEvent';
+import {MlLabelBadge, SeverityBadge} from '../forensic/ForensicEvent';
 
 interface ModalForensicDetailsProps {
     event: ForensicEvent;
@@ -12,25 +12,21 @@ interface ModalForensicDetailsProps {
 
 const STEP_LABELS = ['Schritte', 'Ergebnis', 'Erklärung'] as const;
 
-export default function ModalForensicDetails({ event, onClose }: ModalForensicDetailsProps) {
+export default function ModalForensicDetails({event, onClose}: ModalForensicDetailsProps) {
     const [step, setStep] = useState(0);
 
     const goTo = (i: number) => setStep(Math.min(Math.max(i, 0), STEP_LABELS.length - 1));
 
     return (
-        <div
-            className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4'
-            onClick={onClose}
-        >
-            <div
-                className='bg-neutral-900 border border-neutral-700 rounded-2xl w-full max-w-2xl h-[85vh] flex flex-col'
-                onClick={(e) => e.stopPropagation()}
-            >
+        <div className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4' onClick={onClose}>
+            <div className='bg-neutral-900 border border-neutral-700 rounded-2xl w-full max-w-2xl h-[85vh] flex flex-col' onClick={(e) => e.stopPropagation()}>
                 {/* Header ----------------------------------------------------------------*/}
                 <div className='flex items-start justify-between p-5 border-b border-neutral-700 shrink-0'>
                     <div>
                         <h2 className='text-lg font-bold text-white'>Event #{event.event_id}</h2>
-                        <p className='text-xs text-gray-400 font-mono mt-1'>{event.timestamp} · {event.source_ip}</p>
+                        <p className='text-xs text-gray-400 font-mono mt-1'>
+                            {event.timestamp} · {event.source_ip}
+                        </p>
                     </div>
                     <button onClick={onClose} className='text-gray-400 hover:text-white transition-colors'>
                         <IconX className='size-5' />
@@ -39,7 +35,6 @@ export default function ModalForensicDetails({ event, onClose }: ModalForensicDe
 
                 {/* Body----------------------------------------------------------------------- */}
                 <div className='p-5 overflow-y-auto flex-1'>
-
                     {/* Schritt 1 – Dekodierungs Schritte ---------------------------------------*/}
                     {step === 0 && (
                         <div className='flex flex-col gap-5'>
@@ -55,12 +50,12 @@ export default function ModalForensicDetails({ event, onClose }: ModalForensicDe
                                 <div className='flex flex-col gap-1'>
                                     {event.decode_steps.map((decodeStep, i) => (
                                         <div key={`${decodeStep.layer}-${i}`}>
-                                            <div className={`border rounded-lg p-3 ${decodeStep.changed ? 'border-neutral-700 bg-neutral-800' : 'border-neutral-800 bg-neutral-900/50'}`}>
+                                            <div
+                                                className={`border rounded-lg p-3 ${decodeStep.changed ? 'border-neutral-700 bg-neutral-800' : 'border-neutral-800 bg-neutral-900/50'}`}
+                                            >
                                                 <div className='flex items-center justify-between mb-1'>
                                                     <span className='text-xs font-mono font-semibold text-gray-300'>{decodeStep.layer}</span>
-                                                    {!decodeStep.changed && (
-                                                        <span className='text-[10px] text-gray-500 italic'>keine Änderung</span>
-                                                    )}
+                                                    {!decodeStep.changed && <span className='text-[10px] text-gray-500 italic'>keine Änderung</span>}
                                                 </div>
                                                 <pre className='text-sm font-mono text-gray-300 overflow-x-auto whitespace-pre-wrap break-all'>
                                                     {decodeStep.output}
@@ -107,9 +102,7 @@ export default function ModalForensicDetails({ event, onClose }: ModalForensicDe
                                 <span className='font-semibold text-gray-400 uppercase'>Severity:</span>
                                 <SeverityBadge severity={event.severity} />
                                 <span className='font-semibold text-gray-400 uppercase ml-4'>Regex-Treffer:</span>
-                                <span className={event.regex_match ? 'text-green-400' : 'text-gray-500'}>
-                                    {event.regex_match ? 'Ja' : 'Nein'}
-                                </span>
+                                <span className={event.regex_match ? 'text-green-400' : 'text-gray-500'}>{event.regex_match ? 'Ja' : 'Nein'}</span>
                             </div>
                         </div>
                     )}
@@ -118,9 +111,7 @@ export default function ModalForensicDetails({ event, onClose }: ModalForensicDe
                     {step === 2 && (
                         <div>
                             <p className='text-xs font-semibold text-gray-400 uppercase mb-2'>Erklärung</p>
-                            <p className='text-sm text-gray-300 bg-neutral-800 border border-neutral-700 rounded-lg p-4 leading-relaxed'>
-                                {event.explanation}
-                            </p>
+                            <p className='text-sm text-gray-300 bg-neutral-800 border border-neutral-700 rounded-lg p-4 leading-relaxed'>{event.explanation}</p>
                         </div>
                     )}
                 </div>
@@ -141,16 +132,20 @@ export default function ModalForensicDetails({ event, onClose }: ModalForensicDe
                                             type='button'
                                             onClick={() => goTo(i)}
                                             className={`flex items-center justify-center w-10 h-10 rounded-full border-2 shrink-0 transition-colors cursor-pointer
-                                                ${completed
-                                                    ? 'bg-blue-900/40 border-blue-500 text-blue-400'
-                                                    : active
-                                                        ? 'bg-neutral-800 border-blue-500 text-blue-400'
-                                                        : 'bg-neutral-800 border-neutral-700 text-gray-500'}
+                                                ${
+                                                    completed
+                                                        ? 'bg-blue-900/40 border-blue-500 text-blue-400'
+                                                        : active
+                                                          ? 'bg-neutral-800 border-blue-500 text-blue-400'
+                                                          : 'bg-neutral-800 border-neutral-700 text-gray-500'
+                                                }
                                             `}
                                         >
                                             {completed ? <IconCheck className='size-5' /> : <span className='text-sm font-semibold'>{i + 1}</span>}
                                         </button>
-                                        <span className={`text-[11px] text-center mt-1.5 leading-tight ${active || completed ? 'text-white' : 'text-gray-500'}`}>
+                                        <span
+                                            className={`text-[11px] text-center mt-1.5 leading-tight ${active || completed ? 'text-white' : 'text-gray-500'}`}
+                                        >
                                             {label}
                                         </span>
                                     </div>

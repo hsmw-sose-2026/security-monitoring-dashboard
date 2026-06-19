@@ -9,7 +9,7 @@ export function NavBar() {
     const pathname = usePathname();
 
     return (
-        <nav className='fixed w-full flex items-center justify-center gap-4 bg-neutral-900/50 backdrop-blur-lg border-b py-2 font-semibold'>
+        <nav className='fixed w-full flex items-center justify-center gap-4 bg-neutral-900/50 backdrop-blur-lg border-b py-2 font-semibold z-20'>
             <Link
                 className={cn(
                     'flex items-center gap-1 px-3 pl-2.5 py-1 hover:bg-neutral-800 rounded-lg transition-colors',

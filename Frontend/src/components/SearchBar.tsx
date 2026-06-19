@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { IconSearch } from '@tabler/icons-react';
-import { useRouter } from 'next/navigation';
-import { getBackendHost } from '@/actions/getBackendHost';
+import {IconSearch} from '@tabler/icons-react';
+import {useRouter} from 'next/navigation';
+import {useEffect, useRef, useState} from 'react';
+import {getBackendHost} from '@/actions/getBackendHost';
 
 type SearchSuggestion = {
     name: string;
@@ -14,14 +14,14 @@ type SearchSuggestion = {
 
 // Einträge aus search_service.py – Vorschläge im Dropdown
 const STATIC_ITEMS: SearchSuggestion[] = [
-    { name: 'Sicheres Passwort-Management' },
-    { name: 'Was ist eine Firewall?' },
-    { name: 'SQL Injection verstehen' },
-    { name: 'Zwei-Faktor-Authentifizierung' },
-    { name: 'HTTPS vs HTTP' },
-    { name: 'Phishing erkennen' },
-    { name: 'VPN im Alltag' },
-    { name: 'Datenschutz im Unternehmen' },
+    {name: 'Sicheres Passwort-Management'},
+    {name: 'Was ist eine Firewall?'},
+    {name: 'SQL Injection verstehen'},
+    {name: 'Zwei-Faktor-Authentifizierung'},
+    {name: 'HTTPS vs HTTP'},
+    {name: 'Phishing erkennen'},
+    {name: 'VPN im Alltag'},
+    {name: 'Datenschutz im Unternehmen'},
 ];
 
 interface SearchBarProps {
@@ -29,7 +29,7 @@ interface SearchBarProps {
     onDemoConsumed?: () => void;
 }
 
-export default function SearchBar({ demoValue, onDemoConsumed }: SearchBarProps) {
+export default function SearchBar({demoValue, onDemoConsumed}: SearchBarProps) {
     const router = useRouter();
     const [query, setQuery] = useState('');
     const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
@@ -50,42 +50,40 @@ export default function SearchBar({ demoValue, onDemoConsumed }: SearchBarProps)
     // Vorschläge filtern bei Eingabe
     useEffect(() => {
         const q = query.trim();
-    
+
         if (!q) {
             setSuggestions(STATIC_ITEMS);
             return;
         }
-    
+
         let cancelled = false;
-    
+
         async function loadSuggestions() {
             try {
                 const backendHost = await getBackendHost();
                 const response = await fetch(`${backendHost}/search?q=${encodeURIComponent(q)}`);
-    
+
                 if (!response.ok) {
                     throw new Error('Search request failed');
                 }
-    
+
                 const data = await response.json();
-                const results = Array.isArray(data) ? data : data.results ?? [];
-    
+                const results = Array.isArray(data) ? data : (data.results ?? []);
+
                 if (!cancelled) {
                     setSuggestions(results);
                 }
             } catch {
-                const fallback = STATIC_ITEMS.filter((item) =>
-                    item.name.toLowerCase().includes(q.toLowerCase())
-                );
-    
+                const fallback = STATIC_ITEMS.filter((item) => item.name.toLowerCase().includes(q.toLowerCase()));
+
                 if (!cancelled) {
                     setSuggestions(fallback);
                 }
             }
         }
-    
+
         loadSuggestions();
-    
+
         return () => {
             cancelled = true;
         };
@@ -125,7 +123,7 @@ export default function SearchBar({ demoValue, onDemoConsumed }: SearchBarProps)
                     placeholder='Suche ...'
                     className='outline-none w-full text-sm'
                     value={query}
-                    onChange={e => setQuery(e.target.value)}
+                    onChange={(e) => setQuery(e.target.value)}
                     onFocus={() => setOpen(true)}
                     onKeyDown={handleKeyDown}
                 />
@@ -137,7 +135,7 @@ export default function SearchBar({ demoValue, onDemoConsumed }: SearchBarProps)
                     {suggestions.length === 0 ? (
                         <li className='px-4 py-3 text-sm text-gray-400 italic'>Keine Vorschläge gefunden.</li>
                     ) : (
-                        suggestions.map(item => (
+                        suggestions.map((item) => (
                             <li key={item.name}>
                                 <button
                                     type='button'
@@ -147,9 +145,7 @@ export default function SearchBar({ demoValue, onDemoConsumed }: SearchBarProps)
                                     <IconSearch className='size-3.5 text-gray-300 shrink-0' />
                                     <div className='flex flex-col'>
                                         <span>{item.name}</span>
-                                        {item.category && (
-                                            <span className='text-xs text-gray-400'>{item.category}</span>
-                                        )}
+                                        {item.category && <span className='text-xs text-gray-400'>{item.category}</span>}
                                     </div>
                                 </button>
                             </li>
