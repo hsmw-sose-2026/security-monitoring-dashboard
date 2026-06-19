@@ -1,0 +1,11 @@
+services:
+  secmon:
+    image: secmon:latest
+    build:
+      context: .
+      dockerfile: dockerfile
+    ports:
+      - "8000:8000"
+      - "3000:3000"
+    environment:
+      - BACKEND_HOST=http://localhost:8000

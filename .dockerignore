@@ -1,0 +1,10 @@
+**/node_modules
+**/.next
+.vscode
+dockerfile
+.dockerignore
+docker-compose.yml
+*.log
+.git
+**/.env
+**/__pycache__
