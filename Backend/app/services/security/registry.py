@@ -1,10 +1,10 @@
-﻿"""Run all specialized security detectors for a request."""
+"""Run all specialized security detectors for a request."""
 
 import json
 from pathlib import Path
 from typing import Any
 
-RULES_DIR = Path(__file__).resolve().parent.parent / "rules"
+RULES_DIR = Path(__file__).resolve().parent / "rules"
 BAD_UPLOAD_RULE_PATH = RULES_DIR / "upload_extensions.json"
 
 
