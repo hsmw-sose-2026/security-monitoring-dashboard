@@ -49,6 +49,8 @@ Mehrere Angriffsflächen durch verschiedene Eingabeflächen und Arten, welche ü
 - Sophia -> Frontend, Firmenwebseite, Doku
 - Niklas -> Frontend, Dashboard
 
+---
+
 ## Projektstruktur
 
 **Backend:**
@@ -124,11 +126,10 @@ Backend
 │   └── ...
 └── requirements.txt
 ```
-```
 
 **Frontend:**
 
-```
+```text
 Frontend
 │   favicon.ico
 │   globals.css
