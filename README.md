@@ -42,7 +42,7 @@ Mehrere Angriffsflächen durch verschiedene Eingabeflächen und Arten, welche ü
 
 ## Mitwirkende
 
-- Tim -> Backend, Middleware, Rule-Loader, Pattern-Detection
+- Tim Ziegloser -> Backend, Middleware, Rule-Loader, Pattern-Detection
 - Jonas -> Backend, Dashboard-Daten, Event-/Alert-Pipeline
 - Jannis -> Security-Detektoren, Testangriffe, Detection-Regeln
 - Kevin -> Backend, Contact/Upload APIs
@@ -303,7 +303,16 @@ Die Event-Pipeline ist in mehrere Module aufgeteilt:
 
 ---
 
-## Starten
+## Voraussetzungen
+
+- Python 3 mit `venv` und `pip`
+- [Bun](https://bun.sh/) für das Frontend (Node.js geht auch, im Repo nutzen wir Bun)
+- Git
+- Optional: Docker und Docker Compose
+
+Zwei Prozesse: Backend auf Port 8000, Frontend auf Port 3000.
+
+## Installation und Start
 
 ### Backend
 
@@ -315,11 +324,15 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
+Die SQLite-Datei `database.db` entsteht beim ersten Start im Ordner `Backend/`.
+
 Optionale Umgebungsvariablen (z. B. in `Backend/.env`):
 
 ```text
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
 ```
+
+Ohne die Variable werden keine Discord-Nachrichten geschickt.
 
 ### Frontend
 
@@ -329,8 +342,48 @@ bun install
 bun run dev
 ```
 
-Die Backend-URL wird im Frontend ueber `Frontend/.env.local` gesetzt:
+Die Backend-URL liest `Frontend/src/actions/getBackendHost.ts`. Reihenfolge:
+`BACKEND_HOST`, sonst `NEXT_PUBLIC_BACKEND_HOST`, sonst `http://localhost:8000`.
+Lokal reicht der Default. Optional in `Frontend/.env.local`:
 
 ```text
-NEXT_PUBLIC_API_URL=http://localhost:8000
+BACKEND_HOST=http://localhost:8000
 ```
+
+### Docker
+
+```bash
+docker compose build
+docker compose up
+```
+
+Offen sind die Ports 3000 und 8000.
+
+## Zugangsdaten
+
+Hart im Backend (`app/main.py`), nur für die Demo:
+
+| Benutzer | Passwort  | Rolle |
+|----------|-----------|-------|
+| `admin`  | `admin123` | admin (Dashboard) |
+| `user1`  | `user123`  | user |
+
+Im Browser zuerst unter `http://localhost:3000/login` anmelden. Ohne Login leitet die Firmenseite um. Das Dashboard ist nur mit Admin-Rolle nutzbar.
+
+JWT-Secret steht im Code (`auth_utils.py`), nicht in der Umgebung.
+
+Das JWT gilt 60 Minuten. Die UI prüft nur, ob Einträge in `localStorage` liegen, nicht ob das Token noch gültig ist. Nach Ablauf ausloggen (Startseite) oder `access_token`, `username` und `role` im `localStorage` löschen, sonst bleiben Reste der alten Session stehen.
+
+## Wichtige Funktionen testen
+
+Frontend: `http://localhost:3000`  
+Backend / OpenAPI: `http://localhost:8000/docs`
+
+1. Health: `curl http://localhost:8000/health` — Erwartung `{"status":"ok"}`.
+2. Als `admin` / `admin123` einloggen, Dashboard unter `/dashboard` öffnen.
+3. Rote Demo-Buttons: Login (SQLi), Suche (XSS), Upload (`.exe`). Danach absenden. Events sollten im Dashboard erscheinen.
+4. Sechs falsche Logins hintereinander erzeugen den Alert `brute_force`.
+5. Honeypot: `curl http://localhost:8000/.env` — Event `honeypot_triggered`.
+6. Fertige Sequenz (Backend läuft, venv aktiv): `python app/demo/seed_attacks.py` im Ordner `Backend/`.
+
+Mehr Beispiele: `Backend/app/tests_manual/` (`smoke_tests.md`, `attack_examples.md`).
